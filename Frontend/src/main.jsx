@@ -6,7 +6,8 @@ import About from './About';
 import { Children } from 'react';
 import Home from './Home'
 import ErrorPage from './ErrorPage';
-import Profile from './Profile/Profile';
+import Profile from './Profile/ProfileHeader';
+import Pet from './assets/Pet/Feed/Pet';
 
 
 
@@ -30,7 +31,11 @@ const router = createBrowserRouter([
         {
             path:"/profile",
             element:<Profile/>
-        }
+        },
+        {
+          path:"/pet",
+          element:<Pet/>
+      }
       ]
     },
     

@@ -19,17 +19,22 @@ export default function Navbar() {
         <div className="flex justify-between items-center">
           {/* Logo and Title */}
           <div className="flex text-white text-2xl font-bold gap-4 items-center">
+            <Link to='./'>
+           
             <img
               src={Logo}
               alt="PetFy Logo"
               className="w-20 hover:drop-shadow-2xl transition-all duration-300 transform hover:scale-110"
             />
+             </Link>
+             <Link to='./'>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-red-500 
                 font-extrabold text-4xl tracking-wide drop-shadow-lg hover:drop-shadow-2xl 
                 transition-all duration-300 transform hover:scale-110"
             >
               PetFy
             </span>
+            </Link>
           </div>
 
           {/* Navigation Links */}
