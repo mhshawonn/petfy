@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure the container limits the video height properly */
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 50vh; /* Height of the container is 50% of the viewport */
+  
+  /* Adjust the height based on the screen size */
+  @media (min-width: 768px) {
+    height: 70vh; /* For tablets and up, set height to 70% of the viewport */
+  }
+
+  @media (min-width: 1024px) {
+    height: 80vh; /* For laptops and larger screens, set height to 80% of the viewport */
+  }
+
+  overflow: hidden;
+}
+
+/* Video settings */
+.video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures video covers the container while maintaining aspect ratio */
+}
