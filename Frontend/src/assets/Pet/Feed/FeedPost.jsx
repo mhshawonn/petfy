@@ -22,7 +22,7 @@ const FeedPost = () => {
   return (
     <>
     
-    <div className="max-w-2xl mx-auto p-4 mt-16">
+    <div className="max-w-2xl mx-auto p-4 ">
         <PostHeader/>
     </div>
      

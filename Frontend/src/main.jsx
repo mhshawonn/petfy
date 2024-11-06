@@ -6,8 +6,10 @@ import About from './About';
 import { Children } from 'react';
 import Home from './Home'
 import ErrorPage from './ErrorPage';
-import Profile from './Profile/ProfileHeader';
+import Profile from './Profile/ProfilePost';
 import Pet from './assets/Pet/Feed/Pet';
+import LogIn from "../src/LogIn/LogIn"
+import SignUp from "../src/LogIn/SignUp"
 
 
 
@@ -35,7 +37,15 @@ const router = createBrowserRouter([
         {
           path:"/pet",
           element:<Pet/>
-      }
+      },
+      {
+        path:"/login",
+        element:<LogIn/>
+    },
+    {
+      path:"/signup",
+      element:<SignUp/>
+  },
       ]
     },
     

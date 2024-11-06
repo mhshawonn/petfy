@@ -67,7 +67,7 @@ const Footer = () => {
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">
                     <HiLocationMarker />
-                    <p>Noida, Uttar Pradesh</p>
+                    <p>Dhaka,Bangladesh</p>
                   </div>
                   <div className="flex items-center gap-3 mt-3">
                     <MdMessage />
