@@ -1,6 +1,6 @@
 import React from 'react';
 
-import owl from './image/owl.jpg';
+import owl from './Image/owl.jpg';
 
 export default function FeedPosts(username) {
   return (

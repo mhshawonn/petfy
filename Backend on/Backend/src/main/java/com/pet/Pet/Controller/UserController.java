@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
-
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -106,6 +107,29 @@ public class UserController {
     @GetMapping("/upadteAddress/{id}")
     public String updateAddress(@PathVariable Long id) {
         return userService.updateAddress(id);
+    }
+
+    @GetMapping("/get_user_by_id")
+    public Users getUserById(@RequestParam Long id){
+        return userService.getProfile(id);
+    }
+
+    @GetMapping("/get_user")
+    public Users getUser(@RequestHeader("Authorization") String token){
+        token = token.substring(7);
+        return userService.getUserFromToken(token);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Users>> searchUserHandler(@RequestParam("name") String name){
+
+        System.out.println("query : " + name);
+
+        List<Users> users = userService.searchUser(name);
+
+        System.out.println("users : " + users);
+
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
 }

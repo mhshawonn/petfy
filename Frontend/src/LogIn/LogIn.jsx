@@ -1,37 +1,51 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import logo from '../assets/image/logopet.png'
+import {  useNavigate } from 'react-router-dom'; // To navigate after login
+import axios from 'axios';
+import logo from '../assets/image/logopet.png'; // Assuming this is your logo
 
-function LoginPage() {
+const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate();
+  // Hook to navigate to different pages
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your login logic here (e.g., API call)
+
     if (!username || !password) {
       setErrorMessage('Please enter both username and password');
     } else {
-      setErrorMessage('');
-      // Proceed with authentication logic
-      console.log('Logged in!');
+      try {
+        const response = await axios.post('http://localhost:8080/user/login', {
+          username,
+          password,
+        });
+
+        const resData = await response.json();
+
+        if (response.status === 200) {
+          localStorage.setItem('authToken', resData.data); //token
+          console.log(response.data)
+          // Handle success
+          console.log('Login Successful');
+          // Redirect to the profile page after login
+          navigate('/chat');
+        }
+      } catch (error) {
+        setErrorMessage('Invalid username or password');
+        console.error(error);
+      }
     }
   };
 
   return (
     <div className="relative flex items-center justify-center h-screen bg-gray-100">
-      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: {logo} }}></div>
-
+      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${logo})` }}></div>
       <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-
       <div className="relative z-10 w-full max-w-xs p-6 bg-white rounded-lg shadow-lg">
         <div className="text-center">
-          <img
-            src={logo}
-            alt="logo"
-            className="w-24 mx-auto mb-6"
-          />
+          <img src={logo} alt="logo" className="w-24 mx-auto mb-6" />
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <input
@@ -67,14 +81,14 @@ function LoginPage() {
 
           <div className="mt-4 text-center">
             <span className="text-sm text-gray-600">Don't have an account?</span>
-            <Link to="/signup" className="text-sm font-semibold text-pink-500 hover:underline">
+            <a href="/signup" className="text-sm font-semibold text-pink-500 hover:underline">
               Sign Up
-            </Link>
+            </a>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default LoginPage;

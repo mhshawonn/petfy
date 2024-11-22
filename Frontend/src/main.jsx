@@ -10,9 +10,9 @@ import Profile from './Profile/ProfilePost';
 import Pet from './assets/Pet/Feed/Pet';
 import LogIn from "../src/LogIn/LogIn"
 import SignUp from "../src/LogIn/SignUp"
-
-
-
+import ChatPage from './ChatPage';
+import { Provider } from 'react-redux'; 
+import {store} from './Redux/store';
 
 
 const router = createBrowserRouter([
@@ -37,15 +37,19 @@ const router = createBrowserRouter([
         {
           path:"/pet",
           element:<Pet/>
-      },
-      {
+        },
+        {
         path:"/login",
         element:<LogIn/>
-    },
-    {
-      path:"/signup",
-      element:<SignUp/>
-  },
+        },
+        {
+        path:"/signup",
+        element:<SignUp/>
+        },
+        {
+          path:"/chat",
+          element:<ChatPage/>
+        }
       ]
     },
     
@@ -59,8 +63,9 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   
+  <Provider store={store}>
     <RouterProvider router={router} />
-    
+  </Provider>
    
     
  
