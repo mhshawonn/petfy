@@ -9,10 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Data
@@ -73,4 +70,18 @@ public class Users {
     @JsonIgnore
     @OneToMany(mappedBy = "reviewBy",cascade = CascadeType.ALL)
     private Set<Report> reviewed = new HashSet<>();
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Users users = (Users) o;
+        return Objects.equals(id, users.id) && Objects.equals(username, users.username) &&  Objects.equals(email, users.email) && Objects.equals(password, users.password) ;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username,email, password);
+    }
 }
