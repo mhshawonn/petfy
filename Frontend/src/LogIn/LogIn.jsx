@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import {  useNavigate } from 'react-router-dom'; // To navigate after login
-import axios from 'axios';
-import logo from '../assets/image/logopet.png'; // Assuming this is your logo
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // To navigate after login
+import axios from "axios";
+import logo from "../assets/image/logopet.png"; // Assuming this is your logo
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   // Hook to navigate to different pages
 
@@ -14,26 +14,32 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (!username || !password) {
-      setErrorMessage('Please enter both username and password');
+      setErrorMessage("Please enter both username and password");
     } else {
       try {
-        const response = await axios.post('http://localhost:8080/user/login', {
+        const response = await axios.post("http://localhost:8080/user/login", {
           username,
           password,
         });
 
-        const resData = await response.json();
+        // if (!response.ok) {
+        //   const errorData = await response.json();
+        //   setErrorMessage(errorData.message || 'Login failed');
+        //   return;
+        // }
+
+        const resData = await response.data;
 
         if (response.status === 200) {
-          localStorage.setItem('authToken', resData.data); //token
-          console.log(response.data)
+          localStorage.setItem("authToken", response.data); //token
+          console.log(response.data);
           // Handle success
-          console.log('Login Successful');
+          console.log("Login Successful");
           // Redirect to the profile page after login
-          navigate('/chat');
+          navigate("/");
         }
       } catch (error) {
-        setErrorMessage('Invalid username or password');
+        setErrorMessage("Invalid username or password");
         console.error(error);
       }
     }
@@ -41,7 +47,10 @@ const LoginPage = () => {
 
   return (
     <div className="relative flex items-center justify-center h-screen bg-gray-100">
-      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${logo})` }}></div>
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${logo})` }}
+      ></div>
       <div className="absolute inset-0 bg-black bg-opacity-40"></div>
       <div className="relative z-10 w-full max-w-xs p-6 bg-white rounded-lg shadow-lg">
         <div className="text-center">
@@ -80,8 +89,13 @@ const LoginPage = () => {
           </form>
 
           <div className="mt-4 text-center">
-            <span className="text-sm text-gray-600">Don't have an account?</span>
-            <a href="/signup" className="text-sm font-semibold text-pink-500 hover:underline">
+            <span className="text-sm text-gray-600">
+              Don't have an account?
+            </span>
+            <a
+              href="/signup"
+              className="text-sm font-semibold text-pink-500 hover:underline"
+            >
               Sign Up
             </a>
           </div>
