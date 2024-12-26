@@ -7,19 +7,14 @@ export default function ChatModal({ open, children, onClose }) {
 
   return ReactDOM.createPortal(
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-        <div className="relative bg-white w-4/5 h-4/5 md:w-3/5 md:h-3/5 lg:w-2/5 lg:h-2/5 p-4 rounded shadow-lg flex flex-col">
-          <button
-            className="absolute top-2 right-2 h-8 w-8 bg-red-500 text-white rounded-full flex items-center justify-center"
-            onClick={onClose}
-            aria-label="Close Chat Modal"
-          >
-            &times;
-          </button>
-          <div className="flex-grow overflow-auto">
-            <ChatPage />
-          </div>
-        </div>
+      i am inside chat modal
+      <div className="fixed h-4/5 w-4/5 left-10 right-10 top-10 bottom-10 bg-[#ff0000] z-50">
+        <ChatPage />
+      </div>
+      <div className="fixed bottom-5 left-10 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 z-50">
+        <button className="bg-red-500 " onClick={onClose}>
+          Close Modal
+        </button>
       </div>
     </>,
     document.getElementById("portal")
