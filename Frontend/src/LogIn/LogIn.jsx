@@ -14,26 +14,32 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (!username || !password) {
-      setErrorMessage('Please enter both username and password');
+      setErrorMessage("Please enter both username and password");
     } else {
       try {
-        const response = await axios.post('http://localhost:8080/user/login', {
+        const response = await axios.post("http://localhost:8080/user/login", {
           username,
           password,
         });
 
-        const resData = await response.json();
+        // if (!response.ok) {
+        //   const errorData = await response.json();
+        //   setErrorMessage(errorData.message || 'Login failed');
+        //   return;
+        // }
+
+        const resData = await response.data;
 
         if (response.status === 200) {
-          localStorage.setItem('authToken', resData.data); //token
-          console.log(response.data)
+          localStorage.setItem("authToken", response.data); //token
+          console.log(response.data);
           // Handle success
-          console.log('Login Successful');
+          console.log("Login Successful");
           // Redirect to the profile page after login
-          navigate('/chat');
+          navigate("/");
         }
       } catch (error) {
-        setErrorMessage('Invalid username or password');
+        setErrorMessage("Invalid username or password");
         console.error(error);
       }
     }

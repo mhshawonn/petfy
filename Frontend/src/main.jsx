@@ -13,6 +13,7 @@ import SignUp from "../src/LogIn/SignUp"
 import ChatPage from './ChatPage';
 import { Provider } from 'react-redux'; 
 import {store} from './Redux/store';
+import CreateBlog from './Blog/CreateBlog'; // Adjust the path if necessary
 
 
 const router = createBrowserRouter([
@@ -49,7 +50,11 @@ const router = createBrowserRouter([
         {
           path:"/chat",
           element:<ChatPage/>
-        }
+        },
+        {
+          path: "/blog/create", // New route for creating a blog
+          element: <CreateBlog />,
+        },
       ]
     },
     
