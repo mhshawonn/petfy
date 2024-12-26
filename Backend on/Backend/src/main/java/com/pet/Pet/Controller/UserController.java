@@ -60,6 +60,10 @@ public class UserController {
     public String login(@RequestBody Map<String, String> requestBody){
         String username = requestBody.get("username");
         String password = requestBody.get("password");
+
+        System.out.println("username : " + username);
+        System.out.println("password : " + password);
+
         return userService.verify(username,password);
     }
 

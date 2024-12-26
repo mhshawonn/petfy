@@ -77,6 +77,8 @@ const SignUp = () => {
         body: JSON.stringify({ email, username, name, password }),
       });
 
+      console.log(username, email, name, password);
+
       if (response.ok) {
         setIsOTPStage(true);
         setErrorMessage('');
