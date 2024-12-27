@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,15 +21,12 @@ public class Chat {
 	private Long id;
 	
 	private String chat_name;
-	private String chat_image;
-	
-	@ManyToMany
-	private Set<Users> admins = new HashSet<Users>();
 
-	
-	@JoinColumn(name = "created_by")
-	@ManyToOne
-	private Users createdBy;
+	private Timestamp last_interaction;
+
+	private Long last_interaction_sender_id;
+
+	private boolean unseen_messages;
 	
 	@ManyToMany
 	private Set<Users> users = new HashSet<Users>();

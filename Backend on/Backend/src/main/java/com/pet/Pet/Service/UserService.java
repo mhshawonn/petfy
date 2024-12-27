@@ -60,11 +60,15 @@ public class UserService {
     }
 
     public Users getUserFromToken(String token) {
-        String username = jwtService.extractUsername(token);
-        Users user =usersRepo.findByUsername(username);
+        try {
+            String username = jwtService.extractUsername(token);
+            Users user = usersRepo.findByUsername(username);
 
-        if(user == null) return null;
-        return user;
+            if (user == null) return null;
+            return user;
+        }catch (Exception e){
+            return null;
+        }
     }
 
 

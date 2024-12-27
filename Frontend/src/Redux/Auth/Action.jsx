@@ -96,18 +96,27 @@ export const searchUser = (data) => async (dispatch) => {
   console.log("searchUser invoked, data --> " + data);
   try {
     const res = await fetch(
-      `${BASE_API_URL}/user/search?name=${data.keyword}`,
+      `${BASE_API_URL}/user/search?name=${data.keyword}&userId=${data.userId}&searching=${data.searching}`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          // Authorization: `Bearer ${data.token}`
-        },
+        
+        // headers: {
+        //   "Content-Type": "application/json",
+        //   // Authorization: `Bearer ${data.token}`
+        // },
       }
     );
 
-    const resData = await res.json();
-    console.log("search User ", resData);
+    let resData = await res.json();
+
+    // resData = await resData.filter((user) => user.id !== data?.userId);
+
+    // console.log("search User ", resData[0]);
+
+    // console.log("id sent to search user  ", data.userId);
+
+    console.log("search Users  ", resData);
+
     dispatch({ type: SEARCH_USER, payload: resData });
   } catch (error) {
     console.log("caught error ", error);

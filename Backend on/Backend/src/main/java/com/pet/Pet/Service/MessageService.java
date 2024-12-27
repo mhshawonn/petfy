@@ -7,11 +7,13 @@ import com.pet.Pet.Exceptions.UserException;
 import com.pet.Pet.Model.Chat;
 import com.pet.Pet.Model.Message;
 import com.pet.Pet.Model.Users;
+import com.pet.Pet.Repo.ChatRepository;
 import com.pet.Pet.Repo.MessageRepository;
 import com.pet.Pet.ServiceInterface.MessageServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -28,17 +30,25 @@ public class MessageService implements MessageServiceInterface {
     @Autowired
     private ChatService chatService;
 
+    @Autowired
+    private ChatRepository chatRepository;
+
 
     @Override
-    public Message sendMessage(SendMessageRequest req ) throws UserException, ChatException {
+    public Message sendMessage(SendMessageRequest req, Long senderUserId ) throws UserException, ChatException {
         Users user = userService.findUserById(req.getUserId());
         Chat chat = chatService.findChatById(req.getChatId());
+
+        chat.setLast_interaction(Timestamp.valueOf(LocalDateTime.now()));
+        chat.setLast_interaction_sender_id(senderUserId);
 
         Message message = new Message();
         message.setChat(chat);
         message.setUser(user);
         message.setContent(req.getContent());
         message.setTimestamp(LocalDateTime.now());
+
+        chatRepository.save(chat);
 
         return messageRepository.save(message);
     }

@@ -32,7 +32,6 @@ public class ChatService implements ChatServiceInterface {
         }
 
         Chat chat = new Chat();
-        chat.setCreatedBy(reqUser);
         chat.getUsers().add(user);
         chat.getUsers().add(reqUser);
 
