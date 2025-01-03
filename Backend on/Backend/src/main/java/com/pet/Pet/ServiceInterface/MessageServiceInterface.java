@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface MessageServiceInterface {
 	
-	public Message sendMessage( SendMessageRequest req) throws UserException, ChatException;
+	public Message sendMessage( SendMessageRequest req, Long senderUserId) throws UserException, ChatException;
 	
 	public List<Message> getChatsMessages(Long chatId, Users reqUser) throws ChatException, UserException;
 	

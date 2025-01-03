@@ -1,13 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // To navigate after login
-import axios from "axios";
 import logo from "../assets/image/logopet.png"; // Assuming this is your logo
+import { useDispatch } from "react-redux";
+import { login, currentUser } from "../Redux/Auth/Action";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { auth } = useSelector((store) => store);
+  const token = localStorage.getItem("authToken");
+
   // Hook to navigate to different pages
 
   const handleSubmit = async (e) => {
@@ -16,34 +24,48 @@ const LoginPage = () => {
     if (!username || !password) {
       setErrorMessage("Please enter both username and password");
     } else {
-      try {
-        const response = await axios.post("http://localhost:8080/user/login", {
-          username,
-          password,
+      const data = { username, password };
+
+      dispatch(login(data))
+        .then((response) => {
+          console.log("response", response);
+
+          console.log("login auth", auth?.reqUser);
+
+          if (response.success) {
+            navigate("/");
+          } else {
+            setErrorMessage("Invalid username or password");
+            console.error(response.message);
+          }
+        })
+        .catch((error) => {
+          setErrorMessage("An error occurred. Please try again.");
+          console.error(error);
         });
-
-        // if (!response.ok) {
-        //   const errorData = await response.json();
-        //   setErrorMessage(errorData.message || 'Login failed');
-        //   return;
-        // }
-
-        const resData = await response.data;
-
-        if (response.status === 200) {
-          localStorage.setItem("authToken", response.data); //token
-          console.log(response.data);
-          // Handle success
-          console.log("Login Successful");
-          // Redirect to the profile page after login
-          navigate("/");
-        }
-      } catch (error) {
-        setErrorMessage("Invalid username or password");
-        console.error(error);
-      }
+      // Redirect to the profile page after login
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      dispatch(currentUser(token));
+
+      if (auth?.reqUser?.name) {
+        // console.log("q You are already logged in as " + auth?.reqUser);
+      }
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (auth?.reqUser?.name) {
+      // navigate("/");
+      console.log("You are already logged in as " + auth?.reqUser?.name);
+    }
+  }, [auth?.reqUser]);
+
+  console.log("auth", auth?.reqUser);
+  console.log("auth name", auth?.reqUser?.name);
 
   return (
     <div className="relative flex items-center justify-center h-screen bg-gray-100">
