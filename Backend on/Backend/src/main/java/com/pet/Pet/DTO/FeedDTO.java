@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PetDTO {
+public class FeedDTO {
     private Long id;
     private String name;
     private String description;
