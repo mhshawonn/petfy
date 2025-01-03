@@ -1,6 +1,7 @@
 package com.pet.Pet.Service;
 
-import com.pet.Pet.DTO.PetDTO;
+import com.pet.Pet.DTO.FeedDTO;
+import com.pet.Pet.DTO.ReactDTO;
 import com.pet.Pet.Model.*;
 import com.pet.Pet.Repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,9 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,9 +33,9 @@ public class PetService {
     @Autowired
     private UserService userService;
     @Autowired
-    private ReactRepo reactRepo;
-    @Autowired
     private AdoptionRepo adoptRepo;
+    @Autowired
+    private ReactService reactService;
 
     public String addPet(Pet pet, List<MultipartFile> multipartFiles, Long animalId, List<Long> categoryIds, Long addressId) throws IOException {
         UserPrincipal userDetails = userService.getUserPrincipal();
@@ -62,28 +60,21 @@ public class PetService {
         return "Pet added successfully";
     }
 
-    public Page<PetDTO> getAllPets(int page, String sortAttribute, int order) {
+    public Page<FeedDTO> getAllPets(int page, String sortAttribute, int order) {
         UserPrincipal userDetails = userService.getUserPrincipal();
         Long userId = userDetails != null ? userDetails.getId() : null;
         if (sortAttribute == null) {
             sortAttribute = "id";
         }
         Sort sort = (order == 0) ? Sort.by(Sort.Order.desc(sortAttribute)) : Sort.by(Sort.Order.asc(sortAttribute));
-        Pageable pageable = PageRequest.of(page, 1, sort);
+        Pageable pageable = PageRequest.of(page, 10, sort);
         return processPets(petRepo.findAllPet(pageable), userId);
     }
 
-    private Page<PetDTO> processPets(Page<PetDTO> allPet, Long userId) {
+    private Page<FeedDTO> processPets(Page<FeedDTO> allPet, Long userId) {
         if(userId!=null){
-            for (PetDTO petDTO : allPet) {
-                petDTO.setReactType(reactRepo.findReactTypeByPostIdAndPostTypeAndUserIdAndIsSavedFalse(petDTO.getId(), 0,userId));
-                petDTO.setNumberOfReact(reactRepo.countByPostIdAndPostTypeAndIsSavedFalse(petDTO.getId(), 0));
-                petDTO.setNumberOfRequests(adoptRepo.countByPetId(petDTO.getId()));
-            }
-        }else{
-            for (PetDTO petDTO : allPet) {
-                petDTO.setNumberOfReact(reactRepo.countByPostIdAndPostTypeAndIsSavedFalse(petDTO.getId(), 0));
-                petDTO.setNumberOfRequests(adoptRepo.countByPetId(petDTO.getId()));
+            for (FeedDTO feedDTO : allPet) {
+                feedDTO.setReactType(reactService.findReactTypeByPostIdAndPostTypeAndUserIdAndIsSavedFalse(feedDTO.getId(), 0,userId));
             }
         }
         return allPet;
@@ -98,10 +89,12 @@ public class PetService {
         if(userDetails == null) return "User not Authenticated";
         Users user = usersRepo.findByUsername(userDetails.getUsername());
         Pet pet = petRepo.findById(id).orElseThrow(() -> new RuntimeException("Pet not found"));
+        pet.setNumberOfRequests(pet.getNumberOfRequests()+1);
         adoptionRequest.setPet(pet);
         adoptionRequest.setRequestUsers(user);
         List<String> urls = firebaseService.uploadFiles(files);
         adoptionRequest.setCertificates(urls);
+        petRepo.save(pet);
         adoptRepo.save(adoptionRequest);
         return "Request sent successfully";
     }
@@ -122,5 +115,13 @@ public class PetService {
 
     public List<AdoptionRequest> getAdoptionRequest(Long id) {
         return adoptRepo.findAllByPetId(id);
+    }
+
+    public String addReact(Long id, int postType, int type, boolean isSaved) {
+        return reactService.addReact(id,postType,type,isSaved);
+    }
+
+    public List<ReactDTO> getReactByPostIdAndPostType(Long id, int i) {
+        return reactService.getReactByPostIdAndPostType(id,i);
     }
 }

@@ -1,5 +1,6 @@
 package com.pet.Pet.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,13 +28,14 @@ public class Blog {
     private Long numberOfReports;
     private boolean isBanned;
     private Long numberOfComments;
-    private Long numberOfReact;
+    private Long reactCount;
     private int reactType;
 
     @ManyToOne
     @JoinColumn(name = "author_id", referencedColumnName = "id")
     private Users author;
 
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
             name = "blog_tags",
@@ -42,6 +44,7 @@ public class Blog {
     )
     private List<Tags> tags;
 
+    @JsonIgnore
     @OneToMany(mappedBy="blog",cascade = CascadeType.ALL)
     private List<Comment> comments;
 }
