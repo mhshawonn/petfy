@@ -6,16 +6,20 @@ import com.google.firebase.FirebaseOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Configuration
 public class FirebaseConfig {
 
     @Bean
     public FirebaseApp initializeFirebase() throws IOException {
-        FileInputStream serviceAccount =
-                new FileInputStream("src/main/resources/serviceAccountKey.json");
+        // Load the serviceAccountKey.json from the classpath
+        InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("serviceAccountKey.json");
+
+        if (serviceAccount == null) {
+            throw new IOException("File serviceAccountKey.json not found in resources directory.");
+        }
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
