@@ -1,6 +1,7 @@
 package com.pet.Pet.Service;
 
 import com.pet.Pet.DTO.FeedDTO;
+import com.pet.Pet.DTO.ReactDTO;
 import com.pet.Pet.Model.Blog;
 import com.pet.Pet.Model.Tags;
 import com.pet.Pet.Model.UserPrincipal;
@@ -82,11 +83,18 @@ public class BlogService {
             }
         }
         return blogs;
-//    }
     }
 
 
     public String addReact(Long id, int postType, int type, boolean isSaved) {
         return reactService.addReact(id,postType,type,isSaved);
+    }
+
+    public List<ReactDTO> getReact(Long id, int postType) {
+        return reactService.getReactByPostIdAndPostType(id,postType);
+    }
+
+    public List<ReactDTO> getReactType(Long id, int postType, int reactType) {
+        return reactService.getReactByPostIdAndPostTypeAndReactType(id,postType,reactType);
     }
 }

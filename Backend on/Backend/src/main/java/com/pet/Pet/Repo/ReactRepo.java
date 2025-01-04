@@ -45,9 +45,9 @@ public interface ReactRepo extends JpaRepository<React,Long> {
             "WHERE r.postId = :postId AND r.postType = :postType AND r.isSaved = false")
     List<ReactDTO> findByPostIdAndPostTypeAndIsSavedFalse(Long postId,int postType);
 
-//    @Query("SELECT new com.pet.Pet.DTO.ReactDTO(r.reactType, r.timestamp, " +
-//            "new com.pet.Pet.DTO.UserDTO(u.id, u.name, u.profilePic)) " +
-//            "FROM React r JOIN r.user u " +
-//            "WHERE r.postId = :postId AND r.postType = :postType AND r.reactType = :reactType AND r.isSaved = false")
-//    List<ReactDTO> findByPostIdAndPostTypeAndReactTypeAndIsSavedFalse(Long id, int postType, int reactType);
+    @Query("SELECT new com.pet.Pet.DTO.ReactDTO(r.reactType, r.timestamp, " +
+            "new com.pet.Pet.DTO.UserDTO(u.id, u.name, u.profilePic)) " +
+            "FROM React r JOIN r.user u " +
+            "WHERE r.postId = :postId AND r.postType = :postType AND r.reactType = :reactType AND r.isSaved = false")
+    List<ReactDTO> findByPostIdAndPostTypeAndReactTypeAndIsSavedFalse(Long postId, int postType, int reactType);
 }

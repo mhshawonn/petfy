@@ -1,5 +1,6 @@
 package com.pet.Pet.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(length = 1000)
     private String content;
     @OrderBy("commentDate DESC")
     private Long commentDate;
@@ -33,10 +35,12 @@ public class Comment {
     @JoinColumn(name = "user_from_id", referencedColumnName = "id")
     private Users userFrom;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "blog_id", referencedColumnName = "id")
     private Blog blog;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private Comment parent;

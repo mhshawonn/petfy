@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -43,6 +44,10 @@ public class PetService {
         Users user = usersRepo.findByUsername(userDetails.getUsername());
         pet.setOwner(user);
         pet.setAddress((addressId != null ? addressRepo.findById(addressId).orElse(null) : user.getAddress()));
+
+        if (pet.getCategories() == null) {
+            pet.setCategories(new ArrayList<>());
+        }
 
         for (Long categoryId : categoryIds) {
             Category category = (Category) categoryRepo.findById(categoryId).orElse(null);
