@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+import EmojiPicker from "emoji-picker-react";
 import { AiOutlineSearch } from "react-icons/ai";
 import {
   BsEmojiSmile,
@@ -24,6 +25,10 @@ import { createMessage, getAllMessages } from "./Redux/Message/Action";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 
+
+
+
+
 const ChatPage = () => {
   const [queries, setQueries] = useState("");
   const [currentChat, setCurrentChat] = useState(null);
@@ -42,6 +47,10 @@ const ChatPage = () => {
   const [messages, setMessages] = useState([]);
 
   const [searchedUsers, setSearchedUsers] = useState([]);
+  const [showPicker, setShowPicker] = useState(false);
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [showFileInput, setShowFileInput] = useState(false);
 
   // for real time chatting
   const connect = () => {
@@ -143,7 +152,7 @@ const ChatPage = () => {
     dispatch(
       createChat({ reqUserId: auth?.reqUser?.id, otherUserId: other_userId })
     );
-    setQueries("*");
+    setQueries("");
   };
 
   const handleSearch = (keyword) => {
@@ -156,11 +165,27 @@ const ChatPage = () => {
     dispatch(
       createMessage({
         senderUserId: auth?.reqUser?.id,
-        data: { chatId: currentChat?.id, content: content },
+        data: { chatId: currentChat?.id, content: content, type: "text" },
       })
     );
     console.log("new message created");
   };
+
+  const handleSendFile = () => {
+
+    dispatch(
+      createMessage({
+        senderUserId: auth?.reqUser?.id,
+        data: { chatId: currentChat?.id, content: selectedFile, type: "image" },
+      })
+    );
+    
+    console.log("file sent");
+    setShowFileInput(false);
+    setSelectedFile(null);
+  }
+
+
 
   useEffect(() => {
     if (auth?.reqUser?.id != null) {
@@ -204,8 +229,7 @@ const ChatPage = () => {
       // alert("no user found");
       console.log("------no user found-----");
       // navigate("../signup");
-    }
-    else{
+    } else {
       dispatch(
         searchUser({
           keyword: "*",
@@ -215,8 +239,6 @@ const ChatPage = () => {
         })
       );
     }
-
-
   }, [auth?.reqUser]);
 
   useEffect(() => {
@@ -254,7 +276,6 @@ const ChatPage = () => {
     }
   }, [currentUser, createMessage, searchUser, queries]);
 
-
   useEffect(() => {
     if (auth?.searchUser) {
       setSearchedUsers(auth?.searchUser);
@@ -273,6 +294,15 @@ const ChatPage = () => {
   // console.log("is connect --- ", isConnect);
   // console.log("auth user --- ", auth.reqUser);
   // console.log("===============================");
+
+  const handleEmojiClick = (emoji) => {
+    setContent((prev) => prev + emoji.emoji);
+    setShowPicker(false); // Close picker after selection
+  };
+
+
+
+
 
   return (
     <div className="relative">
@@ -420,8 +450,10 @@ const ChatPage = () => {
                 {messages?.length > 0 &&
                   messages?.map((item, i) => (
                     <MessageCard
+                      key={i}
                       isReqUserMessage={item?.user?.id === auth?.reqUser?.id}
                       content={item?.content}
+                      type={item?.type}
                     />
                   ))}
               </div>
@@ -429,9 +461,79 @@ const ChatPage = () => {
 
             {/* footer part */}
             <div className=" footer bg-[#f0f2f5] absolute bottom-0 w-full py-3 text-2xl ">
+              {/* Emoji Picker -- shawon check it*/}
+              {showPicker && (
+                <div
+                  className="emoji-picker bottom-full mb-1 left-0 bg-white p-1 shadow-md rounded-lg"
+                  style={{ width: "120px", fontSize: "0.7rem" }}
+                >
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </div>
+              )}
+
+              {/* Conditionally render file input */}
+              {showFileInput && (
+                <div className="z-100 mb-4 p-4 bg-white border rounded-lg shadow-lg">
+                  <input
+                    type="file"
+                    id="image"
+                    onChange={(e) => {
+                      setSelectedFile(URL.createObjectURL(e.target.files[0]));
+                      console.log("file selected: " + e.target.files[0]);
+                      setShowFileInput(false);
+                    }}
+                    className="w-full text-sm py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              )}
+
+              {/* Image Preview */}
+              {selectedFile && (
+                <div className="mt-4 p-4 flex items-center justify-between bg-white border rounded-lg shadow-lg">
+                  <div className="flex space-x-3">
+                    <img
+                      src={selectedFile}
+                      alt="Preview"
+                      className="w-16 h-16 object-cover rounded-md"
+                    />
+                    <div className="text-sm text-gray-700">Image Preview</div>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setSelectedFile(null)}
+                      className="text-red-500 hover:text-red-700 p-1 rounded-full"
+                    >
+                      &times; {/* Close icon */}
+                    </button>
+                    <button
+                      onClick={handleSendFile} // You can define handleSendImage to send the image
+                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                    >
+                      Send
+                    </button>
+                  </div>
+                </div>
+              )}
+
+
+
+
+
               <div className=" flex justify-between items-center px-2 relative ">
-                <BsEmojiSmile className=" cursor-pointer" />
-                <ImAttachment />
+                <BsEmojiSmile
+                  className=" cursor-pointer"
+                  onClick={() => {
+                    setShowPicker((prev) => !prev);
+                    setShowFileInput(false);
+                    setSelectedFile(null);
+                  }}
+                />
+                <ImAttachment
+                  onClick={() => {
+                    setShowFileInput((prev) => !prev);
+                    setShowPicker(false);
+                  }}
+                />
 
                 <input
                   className=" text-lg py-2 outline-none border-none bg-white pl-4 rounded-md w-[85%] "
@@ -447,7 +549,7 @@ const ChatPage = () => {
                   }}
                 ></input>
 
-                <BsMicFill />
+                {/* <BsMicFill /> */}
               </div>
             </div>
           </div>

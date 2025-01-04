@@ -1,0 +1,19 @@
+# Ignore service account key file for the Backend
+Backend on/Backend/target/classes/serviceAccountKey.json
+
+# Ignore Python virtual environments
+myenv/
+.venv/
+env/
+
+# Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+
+Backend on/Backend/target/classes/serviceAccountKey.json
+
+
+# Ignore service account key
+Backend on/Backend/src/main/resources/serviceAccountKey.json
+Backend on/Backend/target/classes/serviceAccountKey.json
