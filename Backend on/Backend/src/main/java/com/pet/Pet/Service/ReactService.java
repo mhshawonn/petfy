@@ -72,13 +72,12 @@ public class ReactService {
         return reactRepo.findByPostIdAndPostTypeAndIsSavedFalse(id, postType);
     }
 
-//    public List<ReactDTO> getReactByPostIdAndPostTypeAndReactTyoe(Long id, int postType,int reactType){
-//        return reactRepo.findByPostIdAndPostTypeAndReactTypeAndIsSavedFalse(id,postType,reactType);
-//    }
+    public List<ReactDTO> getReactByPostIdAndPostTypeAndReactType(Long id, int postType,int reactType){
+        return reactRepo.findByPostIdAndPostTypeAndReactTypeAndIsSavedFalse(id,postType,reactType);
+    }
 
     public int findReactTypeByPostIdAndPostTypeAndUserIdAndIsSavedFalse(Long id, int postType, Long userId) {
         Integer result = reactRepo.findReactTypeByPostIdAndPostTypeAndUserIdAndIsSavedFalse(id, postType, userId);
-        // Convert null to 0
         return result != null ? result : 0;
 
     }
