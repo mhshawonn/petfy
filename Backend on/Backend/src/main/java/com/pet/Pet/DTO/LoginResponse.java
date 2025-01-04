@@ -1,16 +1,15 @@
 package com.pet.Pet.DTO;
 
+import com.pet.Pet.Model.Users;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.java.Log;
 
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SendMessageRequest {
-	
-	private Long userId;
-	private Long chatId;
-	private String content;
-	private String type;
+@Data
+public class LoginResponse {
+    public String token;
+    public Users user;
 }

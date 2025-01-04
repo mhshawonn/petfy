@@ -40,7 +40,7 @@ public class MessageController {
 		
 		Users user = userService.findUserById(senderUserId); //to make sure there's a user with this id
 		req.setUserId(user.getId());
-		Message message = messageService.sendMessage(req);
+		Message message = messageService.sendMessage(req, senderUserId);
 		
 		return new ResponseEntity<Message>(message, HttpStatus.OK);
 	}

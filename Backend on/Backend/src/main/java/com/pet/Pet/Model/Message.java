@@ -19,7 +19,9 @@ public class Message {
 	private String content;
 	
 	private LocalDateTime timestamp;
-	
+	private String type;
+	private String extension;
+
 	@ManyToOne
 	private Users user;
 	

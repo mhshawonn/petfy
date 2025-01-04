@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+import EmojiPicker from "emoji-picker-react";
 import { AiOutlineSearch } from "react-icons/ai";
 import {
   BsEmojiSmile,
@@ -24,8 +25,12 @@ import { createMessage, getAllMessages } from "./Redux/Message/Action";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 
+
+
+
+
 const ChatPage = () => {
-  const [queries, setQueries] = useState(null);
+  const [queries, setQueries] = useState("");
   const [currentChat, setCurrentChat] = useState(null);
   const [content, setContent] = useState("");
   const [isProfile, setIsProfile] = useState(false);
@@ -34,14 +39,18 @@ const ChatPage = () => {
   const dispatch = useDispatch();
   const { auth, chat, message } = useSelector((store) => store);
   const token = localStorage.getItem("authToken"); // get token from local storage
-  const [userId, setUserId] = useState(null); //added
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
 
   const [stompClient, setStompClient] = useState(null);
   const [isConnect, setIsConnect] = useState(false);
   const [messages, setMessages] = useState([]);
+
+  const [searchedUsers, setSearchedUsers] = useState([]);
+  const [showPicker, setShowPicker] = useState(false);
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [showFileInput, setShowFileInput] = useState(false);
 
   // for real time chatting
   const connect = () => {
@@ -69,13 +78,13 @@ const ChatPage = () => {
   };
 
   const onConnect = () => {
-    console.log("----------stomp connected----------");
+    // console.log("----------stomp connected----------");
     setIsConnect(true);
   };
 
   useEffect(() => {
     if (message.newMessage && stompClient) {
-      setMessages((prevMessages) => [...prevMessages, message.newMessage]);
+      // setMessages((prevMessages) => [...prevMessages, message.newMessage]);
 
       console.log("new message sent ------------------ ", message.newMessage);
 
@@ -86,9 +95,9 @@ const ChatPage = () => {
   }, [message.newMessage]);
 
   useEffect(() => {
-    console.log("message updated ------------------ ", message.messages);
-    if (message.messages) {
-      setMessages(message.messages);
+    console.log("messages updated ------------------ ", message?.messages);
+    if (message?.messages) {
+      setMessages(message?.messages);
     }
     console.log("set messages  ------------------ ", messages);
   }, [message.messages]);
@@ -115,7 +124,7 @@ const ChatPage = () => {
         onMessageReceive
       );
 
-      console.log("subscribed---------------------");
+      // console.log("subscribed---------------------");
 
       return () => {
         subscription.unsubscribe();
@@ -140,29 +149,47 @@ const ChatPage = () => {
   // }
 
   const handleClickOnChatCard = (other_userId) => {
-    // setCurrentChat(item);
-    // console.log(userId, " ---- ", item);
-    dispatch(createChat({ reqUserId: userId, otherUserId: other_userId }));
+    dispatch(
+      createChat({ reqUserId: auth?.reqUser?.id, otherUserId: other_userId })
+    );
     setQueries("");
   };
 
   const handleSearch = (keyword) => {
-    dispatch(searchUser({ keyword, token }));
+    dispatch(
+      searchUser({ keyword, token, userId: auth?.reqUser?.id, searching: true })
+    );
   };
 
   const handleCreateNewMessage = () => {
     dispatch(
       createMessage({
-        senderUserId: userId,
-        data: { chatId: currentChat?.id, content: content },
+        senderUserId: auth?.reqUser?.id,
+        data: { chatId: currentChat?.id, content: content, type: "text" },
       })
     );
     console.log("new message created");
   };
 
+  const handleSendFile = () => {
+
+    dispatch(
+      createMessage({
+        senderUserId: auth?.reqUser?.id,
+        data: { chatId: currentChat?.id, content: selectedFile, type: "image" },
+      })
+    );
+    
+    console.log("file sent");
+    setShowFileInput(false);
+    setSelectedFile(null);
+  }
+
+
+
   useEffect(() => {
-    if (userId != null) {
-      dispatch(getUsersChat({ id: userId, token: token }));
+    if (auth?.reqUser?.id != null) {
+      dispatch(getUsersChat({ id: auth?.reqUser?.id, token: token }));
     } else {
       console.log("no user id found to get chat");
     }
@@ -173,7 +200,7 @@ const ChatPage = () => {
       dispatch(
         getAllMessages({
           chatId: currentChat?.id,
-          userId: userId,
+          userId: auth?.reqUser?.id,
           token: token,
         })
       );
@@ -199,17 +226,36 @@ const ChatPage = () => {
   useEffect(() => {
     if (!auth?.reqUser) {
       // shawon add a loading spinner here
-      alert("no user found");
+      // alert("no user found");
       console.log("------no user found-----");
       // navigate("../signup");
+    } else {
+      dispatch(
+        searchUser({
+          keyword: "*",
+          token,
+          userId: auth?.reqUser?.id,
+          searching: false,
+        })
+      );
     }
-  }, [auth?.reqUser, navigate]);
+  }, [auth?.reqUser]);
 
   useEffect(() => {
     //get user id from token
     if (token) {
       dispatch(currentUser(token));
-      setUserId(auth?.reqUser?.id);
+
+      dispatch(
+        searchUser({
+          keyword: "*",
+          token,
+          userId: auth?.reqUser?.id,
+          searching: false,
+        })
+      );
+
+      console.log("going to search % : " + auth?.searchUser);
     } else {
       // navigate("/signup");
 
@@ -217,18 +263,46 @@ const ChatPage = () => {
     }
   }, [token]);
 
+  useEffect(() => {
+    if (token && (queries === null || queries === "")) {
+      dispatch(
+        searchUser({
+          keyword: "%",
+          token,
+          userId: auth?.reqUser?.id,
+          searching: false,
+        })
+      );
+    }
+  }, [currentUser, createMessage, searchUser, queries]);
+
+  useEffect(() => {
+    if (auth?.searchUser) {
+      setSearchedUsers(auth?.searchUser);
+    }
+  }, [auth?.searchUser]);
+
   const handleCurrentChat = (item) => {
     setCurrentChat(item);
   };
 
-  console.log("===============================");
-  console.log("token : ", token);
-  console.log("current chat", currentChat);
-  console.log("messages --- ", messages);
-  console.log("stomp client --- ", stompClient);
-  console.log("is connect --- ", isConnect);
-  console.log("auth user --- ", auth.reqUser);
-  console.log("===============================");
+  // console.log("===============================");
+  // console.log("token : ", token);
+  // console.log("current chat", currentChat);
+  // console.log("messages --- ", messages);
+  // console.log("stomp client --- ", stompClient);
+  // console.log("is connect --- ", isConnect);
+  // console.log("auth user --- ", auth.reqUser);
+  // console.log("===============================");
+
+  const handleEmojiClick = (emoji) => {
+    setContent((prev) => prev + emoji.emoji);
+    setShowPicker(false); // Close picker after selection
+  };
+
+
+
+
 
   return (
     <div className="relative">
@@ -248,44 +322,8 @@ const ChatPage = () => {
                     src="https://cdn.pixabay.com/photo/2023/08/18/15/02/cat-8198720_1280.jpg"
                     alt=""
                   />
-                  <p>{auth.reqUser?.name}</p>
+                  <p>{auth?.reqUser?.name}</p>
                 </div>
-
-                {/* <div className='space-x-3 test-2xl flex'>
-                                    <TbCircleDashed
-                                        className=' cursor-pointer'
-                                        onClick={() => navigate("/status")} />
-                                    <BiCommentDetail />
-
-                                    <div>
-                                        <BsThreeDotsVertical
-                                            id="basic-button"
-                                            aria-controls={open ? 'basic-menu' : undefined}
-                                            aria-haspopup="true"
-                                            aria-expanded={open ? 'true' : undefined}
-                                            onClick={handleClick}
-                                        >
-
-                                        </BsThreeDotsVertical>
-                                        <Menu
-                                            id="basic-menu"
-                                            anchorEl={anchorEl}
-                                            open={open}
-                                            onClose={handleClose}
-                                            MenuListProps={{
-                                                'aria-labelledby': 'basic-button',
-                                            }}
-                                        >
-                                            <MenuItem onClick={handleClose}>Profile</MenuItem>
-                                            <MenuItem onClick={handleCreateGroup}>Create Group</MenuItem>
-                                            <MenuItem onClick={handleLogOut}>Logout</MenuItem>
-                                        </Menu>
-
-                                    </div>
-
-
-
-                                </div> */}
               </div>
 
               <div className=" relative flex justify-center items-center bg-white py-4 px-3">
@@ -309,8 +347,10 @@ const ChatPage = () => {
               {/* all users search */}
               <div className=" bg-white overflow-y-scroll h-[72vh] px-3">
                 {queries &&
-                  auth?.searchUser
-                    ?.filter((item) => item?.id !== userId)
+                  searchedUsers &&
+                  searchedUsers.length > 0 &&
+                  searchedUsers
+                    ?.filter((item) => item?.id !== auth?.reqUser?.id)
                     .map((item) => (
                       <div onClick={() => handleClickOnChatCard(item?.id)}>
                         <hr />
@@ -323,37 +363,26 @@ const ChatPage = () => {
                         />
                       </div>
                     ))}
-
                 {chat.chats.length > 0 &&
                   !queries &&
                   chat.chats?.map((item) => (
                     <div onClick={() => handleCurrentChat(item)}>
                       <hr />
-                      {item.isGroup ? (
-                        <ChatCard
-                          name={item?.chat_name}
-                          userImg={
-                            item?.chat_image ||
-                            "https://cdn.pixabay.com/photo/2016/11/14/17/39/group-1824145_1280.png"
-                          }
-                        />
-                      ) : (
-                        <ChatCard
-                          isChat={true}
-                          name={
-                            auth.reqUser?.id !== item.users[0]?.id
-                              ? item.users[0]?.name
-                              : item.users[1]?.name
-                          }
-                          userImg={
-                            auth.reqUser?.id !== item.users[0]?.id
-                              ? item.users[0]?.profile_pic ||
-                                "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
-                              : item.users[1]?.profile_pic ||
-                                "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
-                          }
-                        />
-                      )}
+                      <ChatCard
+                        isChat={true}
+                        name={
+                          auth.reqUser?.id !== item.users[0]?.id
+                            ? item.users[0]?.name
+                            : item.users[1]?.name
+                        }
+                        userImg={
+                          auth.reqUser?.id !== item.users[0]?.id
+                            ? item.users[0]?.profile_pic ||
+                              "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+                            : item.users[1]?.profile_pic ||
+                              "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+                        }
+                      />
                     </div>
                   ))}
               </div>
@@ -421,8 +450,10 @@ const ChatPage = () => {
                 {messages?.length > 0 &&
                   messages?.map((item, i) => (
                     <MessageCard
+                      key={i}
                       isReqUserMessage={item?.user?.id === auth?.reqUser?.id}
                       content={item?.content}
+                      type={item?.type}
                     />
                   ))}
               </div>
@@ -430,9 +461,79 @@ const ChatPage = () => {
 
             {/* footer part */}
             <div className=" footer bg-[#f0f2f5] absolute bottom-0 w-full py-3 text-2xl ">
+              {/* Emoji Picker -- shawon check it*/}
+              {showPicker && (
+                <div
+                  className="emoji-picker bottom-full mb-1 left-0 bg-white p-1 shadow-md rounded-lg"
+                  style={{ width: "120px", fontSize: "0.7rem" }}
+                >
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </div>
+              )}
+
+              {/* Conditionally render file input */}
+              {showFileInput && (
+                <div className="z-100 mb-4 p-4 bg-white border rounded-lg shadow-lg">
+                  <input
+                    type="file"
+                    id="image"
+                    onChange={(e) => {
+                      setSelectedFile(URL.createObjectURL(e.target.files[0]));
+                      console.log("file selected: " + e.target.files[0]);
+                      setShowFileInput(false);
+                    }}
+                    className="w-full text-sm py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              )}
+
+              {/* Image Preview */}
+              {selectedFile && (
+                <div className="mt-4 p-4 flex items-center justify-between bg-white border rounded-lg shadow-lg">
+                  <div className="flex space-x-3">
+                    <img
+                      src={selectedFile}
+                      alt="Preview"
+                      className="w-16 h-16 object-cover rounded-md"
+                    />
+                    <div className="text-sm text-gray-700">Image Preview</div>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setSelectedFile(null)}
+                      className="text-red-500 hover:text-red-700 p-1 rounded-full"
+                    >
+                      &times; {/* Close icon */}
+                    </button>
+                    <button
+                      onClick={handleSendFile} // You can define handleSendImage to send the image
+                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                    >
+                      Send
+                    </button>
+                  </div>
+                </div>
+              )}
+
+
+
+
+
               <div className=" flex justify-between items-center px-2 relative ">
-                <BsEmojiSmile className=" cursor-pointer" />
-                <ImAttachment />
+                <BsEmojiSmile
+                  className=" cursor-pointer"
+                  onClick={() => {
+                    setShowPicker((prev) => !prev);
+                    setShowFileInput(false);
+                    setSelectedFile(null);
+                  }}
+                />
+                <ImAttachment
+                  onClick={() => {
+                    setShowFileInput((prev) => !prev);
+                    setShowPicker(false);
+                  }}
+                />
 
                 <input
                   className=" text-lg py-2 outline-none border-none bg-white pl-4 rounded-md w-[85%] "
@@ -448,7 +549,7 @@ const ChatPage = () => {
                   }}
                 ></input>
 
-                <BsMicFill />
+                {/* <BsMicFill /> */}
               </div>
             </div>
           </div>
