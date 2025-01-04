@@ -47,6 +47,13 @@ public class MessageService implements MessageServiceInterface {
         message.setUser(user);
         message.setContent(req.getContent());
         message.setTimestamp(LocalDateTime.now());
+        message.setType(req.getType());
+
+        if(req.getType() == "image"){
+            int ind = req.getContent().lastIndexOf('.');
+            String extension = req.getContent().substring(ind);
+            message.setExtension(extension);
+        }
 
         chatRepository.save(chat);
 
