@@ -20,7 +20,6 @@ public class Animal {
     @NotNull
     private String name;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "animal", cascade = CascadeType.ALL)
     private List<Category> categories;
 

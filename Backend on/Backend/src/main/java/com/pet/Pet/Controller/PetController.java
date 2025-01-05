@@ -29,7 +29,8 @@ public class PetController {
     }
 
     @GetMapping("/get/{page}")
-    public Page<FeedDTO> getPets(@PathVariable int page, @RequestParam String sort, @RequestParam int order){
+    public Page<FeedDTO> getPets(@PathVariable int page, @RequestParam(required = false) String sort,
+                                 @RequestParam(required = false) int order){
         return petService.getAllPets(page,sort,order);
     }
 

@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://localhost:3000")
 @RestController
 @RequestMapping("/blog")
 public class BlogController {
@@ -21,9 +21,13 @@ public class BlogController {
     private BlogService blogService;
     @Autowired
     private CommentService commentService;
+
+
     @PostMapping("/create")
     public String createBlog(@RequestPart Blog blog, @RequestPart List<MultipartFile> files,
                              @RequestParam List<Integer> tag) throws IOException {
+
+        System.out.println(blog);
         return blogService.createBlog(blog,files,tag);
     }
 
