@@ -1,77 +1,68 @@
-
+import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Provider } from 'react-redux';
+import { store } from './Redux/store';
+
 import App from './App';
-import {createBrowserRouter,RouterProvider } from "react-router-dom";
 import About from './About';
-import { Children } from 'react';
-import Home from './Home'
+import Home from './Home';
 import ErrorPage from './ErrorPage';
 import Profile from './Profile/ProfilePost';
 import Pet from './assets/Pet/Feed/Pet';
-import LogIn from "../src/LogIn/LogIn"
-import SignUp from "../src/LogIn/SignUp"
+import LogIn from "./LogIn/LogIn";
+import SignUp from "./LogIn/SignUp";
 import ChatPage from './ChatPage';
-import { Provider } from 'react-redux'; 
-import {store} from './Redux/store';
-import CreateBlog from './Blog/CreateBlog'; // Adjust the path if necessary
-
+import BlogPage from './pages/BlogPage';
 
 const router = createBrowserRouter([
-    {
-      path: "/",
-      element: <App/>,
-      errorElement:<ErrorPage/>,
-      children:[
-        {
-            path:"/",
-            element:<Home/>,
-        },
-        {
-            path:"/about",
-            element:<About/>
-            
-        },
-        {
-            path:"/profile",
-            element:<Profile/>
-        },
-        {
-          path:"/pet",
-          element:<Pet/>
-        },
-        {
-        path:"/login",
-        element:<LogIn/>
-        },
-        {
-        path:"/signup",
-        element:<SignUp/>
-        },
-        {
-          path:"/chat",
-          element:<ChatPage/>
-        },
-        {
-          path: "/blog/create", // New route for creating a blog
-          element: <CreateBlog />,
-        },
-      ]
-    },
-    
-  ]);
-
-
-
-
+  {
+    path: "/",
+    element: <App />,
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "/",
+        element: <Home />,
+      },
+      {
+        path: "/about",
+        element: <About />
+      },
+      {
+        path: "/profile",
+        element: <Profile />
+      },
+      {
+        path: "/pet",
+        element: <Pet />
+      },
+      {
+        path: "/login",
+        element: <LogIn />
+      },
+      {
+        path: "/signup",
+        element: <SignUp />
+      },
+      {
+        path: "/chat",
+        element: <ChatPage />
+      },
+      {
+        path: "/blog",
+        element: <BlogPage />
+      },
+    ]
+  },
+]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
-  
-  <Provider store={store}>
-    <RouterProvider router={router} />
-  </Provider>
-   
-    
- 
+  <React.StrictMode>
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
+  </React.StrictMode>
 );
