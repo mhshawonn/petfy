@@ -25,8 +25,13 @@ public class AddressController {
         }
     }
 
-    @GetMapping("/get")
+    @GetMapping("/getByCity")
     public List<Address> getCity(@RequestParam String location) {
         return addressService.getCity(location);
+    }
+
+    @GetMapping("/get")
+    public List<Address> get(){
+        return addressService.getAddress();
     }
 }

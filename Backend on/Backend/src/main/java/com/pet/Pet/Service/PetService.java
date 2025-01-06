@@ -4,6 +4,7 @@ import com.pet.Pet.DTO.FeedDTO;
 import com.pet.Pet.DTO.ReactDTO;
 import com.pet.Pet.Model.*;
 import com.pet.Pet.Repo.*;
+import jakarta.mail.Multipart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,21 +40,24 @@ public class PetService {
     private ReactService reactService;
 
     public String addPet(Pet pet, List<MultipartFile> multipartFiles, Long animalId, List<Long> categoryIds, Long addressId) throws IOException {
-        UserPrincipal userDetails = userService.getUserPrincipal();
-        if(userDetails == null) return "User not Authenticated";
-        Users user = usersRepo.findByUsername(userDetails.getUsername());
+//        UserPrincipal userDetails = userService.getUserPrincipal();
+//        if(userDetails == null) return "User not Authenticated";
+        Users user = usersRepo.findById(1);
         pet.setOwner(user);
         pet.setAddress((addressId != null ? addressRepo.findById(addressId).orElse(null) : user.getAddress()));
 
-        if (pet.getCategories() == null) {
-            pet.setCategories(new ArrayList<>());
+        if(categoryIds!=null){
+            if (pet.getCategories() == null) {
+                pet.setCategories(new ArrayList<>());
+            }
+
+            for (Long categoryId : categoryIds) {
+                Category category = (Category) categoryRepo.findById(categoryId).orElse(null);
+                if (category == null) continue;
+                pet.getCategories().add(category);
+            }
         }
 
-        for (Long categoryId : categoryIds) {
-            Category category = (Category) categoryRepo.findById(categoryId).orElse(null);
-            if (category == null) continue;
-            pet.getCategories().add(category);
-        }
         List<String> urls = firebaseService.uploadFiles(multipartFiles);
         Animal animal = animalRepo.findById(animalId).orElseThrow(() -> new RuntimeException("Animal not found"));
         pet.setAnimal(animal);
