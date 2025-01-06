@@ -44,7 +44,8 @@ public class SecuirityConfig {
                     .authorizeHttpRequests(request->request
                             .requestMatchers("/user/register","/user/verify/**","/user/isHas/**",
                                     "/user/login","/user/reSentOtp/**","/user/isHasEmail/**","/pet/get/**",
-                                    "pet/getPet/**","/user/Profile/**","/**")
+                                    "pet/getPet/**","/user/Profile/**","/**","/animal/getAnimal",
+                                    "/animal/getCategory/**","/address/get","/address/getByCity","/pet/add/**")
                             .permitAll()
                             .anyRequest().authenticated())
                     .httpBasic(Customizer.withDefaults())

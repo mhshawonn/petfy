@@ -9,7 +9,7 @@ import About from './About';
 import Home from './Home';
 import ErrorPage from './ErrorPage';
 import Profile from './Profile/ProfilePost';
-import Pet from './assets/Pet/Feed/Pet';
+import Pet from './assets/Pet/Feed/FeedPosts';
 import LogIn from "./LogIn/LogIn";
 import SignUp from "./LogIn/SignUp";
 import ChatPage from './ChatPage';

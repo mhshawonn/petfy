@@ -6,8 +6,10 @@ import com.pet.Pet.Model.AdoptionRequest;
 import com.pet.Pet.Model.Pet;
 import com.pet.Pet.Service.PetService;
 import com.pet.Pet.Service.ReactService;
+import jakarta.mail.Multipart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,19 +21,27 @@ import java.util.List;
 public class PetController {
     @Autowired
     private PetService petService;
-    @PostMapping("/add")
+
+
+    @PostMapping(value = "/add", consumes ={ MediaType.MULTIPART_FORM_DATA_VALUE})
     public String add(@RequestPart Pet pet,
-                      @RequestPart List<MultipartFile> multipartFiles,
-                      @RequestParam Long animal_id,
-                      @RequestParam List<Long> category_ids,
-                      @RequestParam Long address_id) throws IOException {
+                      @RequestParam("files") List<Multipart> multipartFiles,
+                      @RequestParam(required = true) Long animal_id,
+                      @RequestParam(required = false, defaultValue = "") List<Long> category_ids,
+                      @RequestParam(required = false) Long address_id) throws IOException {
+
+        System.out.println("hello ");
         return petService.addPet(pet,multipartFiles,animal_id,category_ids,address_id);
     }
 
     @GetMapping("/get/{page}")
     public Page<FeedDTO> getPets(@PathVariable int page, @RequestParam(required = false) String sort,
                                  @RequestParam(required = false) int order){
-        return petService.getAllPets(page,sort,order);
+        Page<FeedDTO> feedDTOS =  petService.getAllPets(page,sort,order);
+
+        System.out.printf("feedDTOS : " + feedDTOS);
+
+        return feedDTOS;
     }
 
     @GetMapping("/giveReact")

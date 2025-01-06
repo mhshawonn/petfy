@@ -2,6 +2,7 @@ package com.pet.Pet.Controller;
 
 
 import com.pet.Pet.Model.Animal;
+import com.pet.Pet.Model.Category;
 import com.pet.Pet.Service.AnimalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,5 +28,10 @@ public class CategoryController {
     @GetMapping("/getAnimal")
     public List<Animal> getAnimal(){
         return animalService.getAnimals();
+    }
+
+    @GetMapping("/getCategory/{id}")
+    public List<Category> getCategory(@PathVariable Long id){
+        return animalService.getCategory(id);
     }
 }

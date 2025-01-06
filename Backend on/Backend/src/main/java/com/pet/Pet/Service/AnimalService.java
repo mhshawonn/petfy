@@ -35,4 +35,8 @@ public class AnimalService {
     public List<Animal> getAnimals() {
         return animalRepo.findAll();
     }
+
+    public List<Category> getCategory(Long animaId) {
+        return categoryRepo.findByAnimalId(animaId);
+    }
 }

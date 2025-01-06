@@ -20,4 +20,8 @@ public class AddressService {
     public List<Address> getCity(String value) {
         return addressRepo.searchAddress(value);
     }
+
+    public List<Address> getAddress() {
+        return addressRepo.findAll();
+    }
 }

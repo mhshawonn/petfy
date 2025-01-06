@@ -14,16 +14,7 @@ export default function FeedPosts() {
         <FeedPost>
 
         </FeedPost>
-        <FeedPost>
-
-        </FeedPost>
-
-        <FeedPost>
-
-        </FeedPost>
-        <FeedPost>
-
-        </FeedPost>
+        
 
 
 
