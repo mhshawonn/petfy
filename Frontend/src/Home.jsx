@@ -8,21 +8,19 @@ import Card from "./assets/Card/Card";
 import Card2 from "./assets/Card/Card2";
 import Footer from "./assets/Footer/Footer";
 import AOS from "aos";
-import "aos/dist/aos.css";
+
 import React from "react";
 import Fab from "@mui/material/Fab";
 import ChatModal from "./Modals/ChatModal";
 
 const App = () => {
-  const [isOpenChatModal, setIsOpenChatModal] = useState(false);
-
+  // Add empty dependency array here
   React.useEffect(() => {
     AOS.init({
       duration: 200,
       easing: "ease-in-out",
     });
-  }, []); // Add empty dependency array here
-
+  }, []);
   return (
     <Fragment>
       <div className="h-[700px] relative">
@@ -38,19 +36,7 @@ const App = () => {
         <Hero />
       </div>
 
-      <Fab
-        color="primary"
-        aria-label="chat"
-        className="fixed bg-[#ff0000] rounded-full p-3 text-white"
-        onClick={() => setIsOpenChatModal(true)}
-      ></Fab>
-
-      <ChatModal
-        open={isOpenChatModal}
-        onClose={() => setIsOpenChatModal(false)}
-      >
-        hello there, i am inside chat modal
-      </ChatModal>
+      
 
       <div>
         <Service />
