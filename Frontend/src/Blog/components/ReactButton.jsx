@@ -25,7 +25,7 @@ const ReactButton = ({ id, postType, initialReactType, initialReactCount }) => {
       <button
         onClick={() => handleReact(1)}
         className={`p-2 rounded-full transition duration-300 ease-in-out ${
-          reactType === 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'
+          reactType === 1 ? 'bg-pink-500 text-white' : 'bg-gray-200 hover:bg-gray-300'
         }`}
       >
         👍
@@ -33,7 +33,7 @@ const ReactButton = ({ id, postType, initialReactType, initialReactCount }) => {
       <button
         onClick={() => handleReact(2)}
         className={`p-2 rounded-full transition duration-300 ease-in-out ${
-          reactType === 2 ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'
+          reactType === 2 ? 'bg-pink-500 text-white' : 'bg-gray-200 hover:bg-gray-300'
         }`}
       >
         👎

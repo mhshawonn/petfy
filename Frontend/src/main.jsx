@@ -13,7 +13,7 @@ import Pet from './assets/Pet/Feed/FeedPosts';
 import LogIn from "./LogIn/LogIn";
 import SignUp from "./LogIn/SignUp";
 import ChatPage from './ChatPage';
-import BlogPage from './pages/BlogPage';
+import BlogPage from './Blog/pages/BlogPage';
 
 const router = createBrowserRouter([
   {

@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { use } from "react";
 
-function AddPost() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+function AddPost({ onPostCreated }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]); // For storing sub-categories
   const [category, setCategory] = useState(""); // Selected category
   const [subCategory, setSubCategory] = useState(""); // Selected sub-category
   const [location, setLocation] = useState("");
   const [locationId, setLocationId] = useState(null);
-  const [animalId, setAnimalId] = useState(null); // Assuming animal ID is needed
-  const [addressSuggestions, setAddressSuggestions] = useState([]); 
-  const [categoryIds, setcategoryIds] = useState([]);
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [categoryIds, setCategoryIds] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -27,10 +26,10 @@ function AddPost() {
       .catch((error) => console.error("Error fetching categories:", error));
   }, []);
 
-
   // Fetch address suggestions as the user types in the location field
   useEffect(() => {
-    if (location.length > 2) { // Trigger the request when at least 3 characters are entered
+    if (location.length > 2) {
+      // Trigger the request when at least 3 characters are entered
       axios
         .get(`http://localhost:8080/address/getByCity?location=${location}`)
         .then((response) => {
@@ -42,225 +41,246 @@ function AddPost() {
     }
   }, [location]);
 
-  
-
-
   // Fetch sub-categories whenever category changes
   useEffect(() => {
-    
+    if (category) {
       axios
         .get(`http://localhost:8080/animal/getCategory/${category}`)
         .then((response) => {
           setSubCategories(response.data);
-          console.log(response)
-          console.log(response.data)
         })
         .catch((error) => console.error("Error fetching sub-categories:", error));
-    
+    } else {
+      setSubCategories([]);
+      setSubCategory("");
+    }
   }, [category]);
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) setImage(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) setImage(files);
   };
-
-  const getAnimalId = (animal_sub_category, category) => {
-    for (let sub_cat of category) {
-      if (sub_cat.name === animal_sub_category) {
-        return sub_cat.id;
-      }
-    }
-  
-    return -1; // Return -1 if no match is found
-  };
-  
-
 
   const handleSubmit = async () => {
-    if (!name || !description || !category || !subCategory || !location || !image) {
-      alert("Please fill out all fields.");
-      return;
-    }
-
-    const url = new URL(`http://localhost:8080/pet/add?animal_id=${Number(category)}&category_ids=1,2&address_id=${locationId}`); 
-    const params = new URLSearchParams();
-    const formData = new FormData();
-    formData.append("pet", JSON.stringify({ name, description }));
-    formData.append("files", image);
-    
-    console.log("Dekhte")
-    console.log(categories)
-    console.log(categories, location, name, description,category)
-    url.search = params.toString();
-    console.log(url);
-
     try {
-      const response = await axios.post(url, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      alert("Post submitted successfully!");
-      closeModal();
+      // Validate required fields
+      if (!name || !description || !category || !image) {
+        alert("Please fill all required fields");
+        return;
+      }
+  
+      // Create FormData object
+      const formData = new FormData();
+      
+      // Add pet JSON
+      const petData = {
+        name: name,
+        description: description
+        // add other pet fields as needed
+      };
+      formData.append("pet", JSON.stringify(petData));
+      
+      // Add files
+      if (Array.isArray(image)) {
+        image.forEach(file => {
+          formData.append("multipartFiles", file);
+        });
+      } else {
+        formData.append("multipartFiles", image);
+      }
+      
+      // Add other parameters
+      formData.append("animal_id", category);
+      if (categoryIds && categoryIds.length > 0) {
+        formData.append("category_ids", categoryIds.join(','));
+      }
+      if (locationId) {
+        formData.append("address_id", locationId);
+      }
+  
+      // Make the API call
+      const response = await axios.post(
+        "http://localhost:8080/pet/add",
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+  
+      if (response.data) {
+        alert("Post submitted successfully!");
+        closeModal();
+      }
     } catch (error) {
       console.error("Error submitting post:", error);
-      alert("Failed to submit post. Check the console for details.");
+      alert(error.response?.data?.message || "Failed to submit post");
     }
   };
 
+
   return (
-    <>
-      <div className="flex flex-col sm:flex-row items-center gap-10 mt-20 justify-center mb-28">
-        <span className="font-bold hover:drop-shadow-2xl transition-all duration-300 transform hover:scale-110">
-          Add your Post
-        </span>
-        <button
-          onClick={openModal}
-          className="text-white bg-pink-500 hover:bg-blue-700 px-4 py-2 rounded-md"
-        >
-          Add
-        </button>
+    <div className="max-w-2xl mx-auto my-8">
+      <div
+        className="p-4 bg-pink-500 text-white cursor-pointer hover:bg-pink-600 transition-colors rounded-lg shadow-md"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <h2 className="text-xl font-semibold flex items-center justify-between">
+          {isExpanded ? "Close Add Post Form" : "Add Your Post"}
+          <span>{isExpanded ? "▲" : "▼"}</span>
+        </h2>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 mt-40">
-          <div className="bg-white p-6 rounded-lg w-full sm:w-96">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold text-xl text-pink-600">Create a Post</h2>
-              <button
-                onClick={closeModal}
-                className="text-pink-500 text-lg font-bold"
-              >
-                X
-              </button>
-            </div>
+      {isExpanded && (
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mt-4 space-y-4">
+          {/* Name Field */}
+          <div>
+            <label htmlFor="name" className="block text-gray-700 font-medium mb-1">
+              Name<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full p-3 border border-pink-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
+              placeholder="Enter Post Name"
+              required
+            />
+          </div>
 
-            <div className="mb-4">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full p-3 border border-pink-300 rounded-md"
-                placeholder="Enter Post Name"
-              />
-            </div>
+          {/* Description Field */}
+          <div>
+            <label htmlFor="description" className="block text-gray-700 font-medium mb-1">
+              Description<span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full p-3 border border-pink-400 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
+              placeholder="Enter Description"
+              rows="4"
+              required
+            />
+          </div>
 
-            <div className="mb-4">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-3 border border-pink-400 rounded-md"
-                placeholder="Enter Description"
-              />
-            </div>
+          {/* Image Upload */}
+          <div>
+            <label htmlFor="image" className="block text-gray-700 font-medium mb-1">
+              Image<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="file"
+              id="image"
+              onChange={handleImageChange}
+              className="w-full p-2 border border-pink-400 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
+              multiple
+              accept="image/*"
+              required
+            />
+            {image.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {image.map((file, index) => (
+                  <span key={index} className="text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded">
+                    {file.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
 
-            <div className="mb-4">
-              <label htmlFor="image" className="block text-sm font-medium text-gray-700">
-                Image
-              </label>
-              <input
-                type="file"
-                id="image"
-                onChange={handleImageChange}
-                className="w-full p-3 border border-pink-400 rounded-md"
-              />
-            </div>
+          {/* Category Selection */}
+          <div>
+            <label htmlFor="category" className="block text-gray-700 font-medium mb-1">
+              Category<span className="text-red-500">*</span>
+            </label>
+            <select
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full p-3 border border-pink-400 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
+              required
+            >
+              <option value="">Select a Category</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-            <div className="mb-4">
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-                Category
+          {/* Sub-Category Selection */}
+          {category && (
+            <div>
+              <label htmlFor="subCategory" className="block text-gray-700 font-medium mb-1">
+                Sub-Category
               </label>
               <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-3 border border-pink-400 rounded-md"
+                id="subCategory"
+                value={subCategory}
+                onChange={(e) => setSubCategory(e.target.value)}
+                className="w-full p-3 border border-pink-400 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
               >
-                <option value="">Select a Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-
+                <option value="">Select a Sub-Category</option>
+                {subCategories.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.name}
                   </option>
                 ))}
               </select>
             </div>
+          )}
 
-            {/* Sub-category Dropdown */}
-            {category && (
-              <div className="mb-4">
-                <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700">
-                  Sub-Category
-                </label>
-                <select
-                  id="subCategory"
-                  value={subCategory}
-                  onChange={(e) => setSubCategory(e.target.value)}
-                  className="w-full p-3 border border-pink-400 rounded-md"
-                >
-                  <option value="">Select a Sub-Category</option>
-                  {subCategories.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          {/* Location Input */}
+          <div className="relative">
+            <label htmlFor="location" className="block text-gray-700 font-medium mb-1">
+              Location
+            </label>
+            <input
+              type="text"
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full p-3 border border-pink-400 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
+              placeholder="Enter Location"
+            />
+            {addressSuggestions.length > 0 && (
+              <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto">
+                {addressSuggestions.map((address) => (
+                  <li
+                    key={address.id}
+                    onClick={() => {
+                      setLocation(address.city);
+                      setLocationId(address.id);
+                      setAddressSuggestions([]);
+                    }}
+                    className="p-2 cursor-pointer hover:bg-gray-100"
+                  >
+                    {address.city}
+                  </li>
+                ))}
+              </ul>
             )}
-
-              <div className="mb-4">
-              <label htmlFor="location" className="block text-sm font-medium text-gray-500">
-                Location
-              </label>
-              <input
-                type="text"
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full p-3 border border-pink-400 rounded-md"
-                placeholder="Enter Location"
-              />
-              {addressSuggestions.length > 0 && (
-                <ul className="mt-2 border border-gray-300 rounded-md">
-                  {addressSuggestions.map((address) => (
-                    <li
-                      key={address.id}
-                      onClick={() => {
-                        setLocation(address.city);
-                        setLocationId(address.id);
-                        setAddressSuggestions([]); // Clear suggestions once an address is selected
-                      }}
-                      
-                      className="p-2 cursor-pointer hover:bg-gray-100"
-                    >
-                      {address.city}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="mb-4">
-              <button
-                onClick={handleSubmit}
-                className="w-full text-white bg-pink-500 hover:bg-blue-700 py-2 rounded-md"
-              >
-                Submit Post
-              </button>
-            </div>
           </div>
-        </div>
+
+          {/* Submit Button */}
+          <div>
+            <button
+              type="submit"
+              className={`w-full text-white bg-pink-500 hover:bg-pink-600 py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 transition-transform transform hover:-translate-y-1 hover:scale-105 ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={loading}
+            >
+              {loading ? "Submitting..." : "Submit Post"}
+            </button>
+          </div>
+        </form>
       )}
-    </>
+    </div>
   );
 }
 
