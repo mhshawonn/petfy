@@ -1,47 +1,143 @@
-import React from 'react';
-import img from "../../src/assets/image/owl.jpg";
+import React, { useState, useEffect } from 'react';
+import { FaCamera, FaEdit } from 'react-icons/fa';
+import axios from 'axios';
+import { useAuth } from './AuthContext';
 
-export default function ProfileHeader() {
+const ProfileHeader = () => {
+  const { user, updateUser } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [bio, setBio] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get('/user/myProfile', {
+          headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          }
+        });
+        setProfile(response.data);
+        setBio(response.data.bio || '');
+      } catch (error) {
+        console.error('Profile fetch error', error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleProfilePicUpload = async (event) => {
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('multipartFile', file);
+
+    try {
+      const response = await axios.post('/user/profilePic', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+        }
+      });
+      updateUser(response.data);
+    } catch (error) {
+      console.error('Profile pic upload error', error);
+    }
+  };
+
+  const handleBioUpdate = async () => {
+    try {
+      const response = await axios.post('/user/updateBio', 
+        { bio: bio },
+        {
+          headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          }
+        }
+      );
+      updateUser(response.data);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Bio update error', error);
+    }
+  };
+
+  if (!profile) return <div>Loading...</div>;
+
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-6 mt-20 justify-center mb-10">
-      <div className="flex justify-center sm:justify-center">
-        <img
-          src={img}
-          alt="shawon"
-          className="rounded-full w-24 h-24 sm:w-32 sm:h-32 object-cover"
+    <div className="profile-header flex flex-col items-center">
+      <div className="relative">
+        <img 
+          src={profile.profilePicUrl || '/default-profile.png'} 
+          alt="Profile" 
+          className="w-32 h-32 rounded-full object-cover"
         />
+        <label className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer">
+          <FaCamera />
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleProfilePicUpload}
+            className="hidden" 
+          />
+        </label>
       </div>
 
-      <div className="flex flex-col items-center sm:items-start gap-4">
-        <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-10 w-full">
-          <span className="text-lg font-semibold">Newbie</span>
-          <div className="flex gap-6">
-            <div className="flex flex-col items-center">
-              <span className="font-bold">4</span>
-              <span className="text-sm text-gray-600">Posts</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-bold">1000</span>
-              <span className="text-sm text-gray-600">Followers</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-bold">200</span>
-              <span className="text-sm text-gray-600">Following</span>
+      <div className="mt-4 text-center">
+        <h2 className="text-2xl font-bold">{profile.username}</h2>
+        
+        {isEditing ? (
+          <div className="mt-2">
+            <textarea 
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className="w-full p-2 border rounded"
+              maxLength={200}
+            />
+            <div className="flex justify-center space-x-2 mt-2">
+              <button 
+                onClick={handleBioUpdate}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                Save
+              </button>
+              <button 
+                onClick={() => setIsEditing(false)}
+                className="bg-gray-300 text-black px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
             </div>
           </div>
-          <button   className="text-white font-bold bg-gradient-to-r from-pink-500 to-red-500 border-2 border-white 
-                px-6 py-2 rounded-lg shadow-lg hover:shadow-2xl hover:bg-gradient-to-r 
-                hover:from-red-500 hover:to-pink-500 transition-transform transform 
-                hover:scale-105">
-            EditProfile
-          </button>
-        </div>
+        ) : (
+          <div className="mt-2">
+            <p className="text-gray-600">{profile.bio || 'No bio yet'}</p>
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="mt-2 flex items-center gap-2 mx-auto"
+            >
+              <FaEdit /> Edit Bio
+            </button>
+          </div>
+        )}
 
-        <div className="flex flex-col text-center sm:text-left mt-4">
-          <p className="font-semibold">Newbie</p>
-          <p className="text-gray-600 text-sm">Bio: Brief description or bio text goes here.</p>
+        <div className="flex justify-center space-x-6 mt-4">
+          <div>
+            <span className="font-bold">4</span>
+            <p className="text-gray-600">Posts</p>
+          </div>
+          <div>
+            <span className="font-bold">1000</span>
+            <p className="text-gray-600">Followers</p>
+          </div>
+          <div>
+            <span className="font-bold">500</span>
+            <p className="text-gray-600">Following</p>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProfileHeader;

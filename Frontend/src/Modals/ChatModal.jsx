@@ -1,20 +1,27 @@
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
+import { AiOutlineClose } from "react-icons/ai"; 
 import ChatPage from "../ChatPage";
 
-export default function ChatModal({ open, children, onClose }) {
+export default function ChatModal({ open, onClose }) {
   if (!open) return null;
 
   return ReactDOM.createPortal(
     <>
-      i am inside chat modal
-      <div className="fixed h-4/5 w-4/5 left-10 right-10 top-10 bottom-10 bg-[#ff0000] z-50">
-        <ChatPage />
-      </div>
-      <div className="fixed bottom-5 left-10 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 z-50">
-        <button className="bg-red-500 " onClick={onClose}>
-          Close Modal
-        </button>
+      {/* Modal container with relative positioning */}
+      <div className="fixed inset-0 z-50 flex justify-center items-center bg-opacity-50 bg-black">
+        <div className="relative h-4/5 w-4/5 bg-[#ff0000]">
+          {/* Close button positioned at the top-right of the modal */}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 text-pink-500 bg-transparent hover:bg-gray-700 p-2 rounded-full"
+          >
+            <AiOutlineClose size={30} />
+          </button>
+
+          {/* Chat page content */}
+          <ChatPage />
+        </div>
       </div>
     </>,
     document.getElementById("portal")
@@ -23,6 +30,5 @@ export default function ChatModal({ open, children, onClose }) {
 
 ChatModal.propTypes = {
   open: PropTypes.bool.isRequired,
-  children: PropTypes.node,
   onClose: PropTypes.func.isRequired,
 };

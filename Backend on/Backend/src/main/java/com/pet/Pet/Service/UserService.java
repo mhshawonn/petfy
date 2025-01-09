@@ -1,5 +1,6 @@
 package com.pet.Pet.Service;
 
+import com.pet.Pet.DTO.UserDTO;
 import com.pet.Pet.Exceptions.UserException;
 import com.pet.Pet.Model.Address;
 import com.pet.Pet.Model.UserPrincipal;
@@ -19,9 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -189,4 +188,15 @@ public class UserService {
         List<Users> users = usersRepo.searchUser(query);
         return users;
     }
+
+    public List<UserDTO> getUsers(String name,Long userId) {
+        List<UserDTO> users = usersRepo.searchByName(name);
+        List<UserDTO> selectUsers = new ArrayList<>();
+        for(UserDTO user : users){
+            if(Objects.equals(user.getId(), userId)) continue;
+            selectUsers.add(user);
+        }
+        return selectUsers;
+    }
+
 }

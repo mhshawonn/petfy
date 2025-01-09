@@ -2,6 +2,7 @@ package com.pet.Pet.Controller;
 
 
 import com.pet.Pet.DTO.LoginResponse;
+import com.pet.Pet.DTO.UserDTO;
 import com.pet.Pet.Exceptions.UserException;
 import com.pet.Pet.Model.Chat;
 import com.pet.Pet.Model.Users;
@@ -148,54 +149,13 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Users>> searchUserHandler(@RequestParam(value = "name", required = false) String name,
-                                                         @RequestParam("userId") Long userId,
-                                                         @RequestParam(value = "searching", required = false,
-                                                                 defaultValue = "false") Boolean searching)
+    public List<UserDTO> searchUserHandler(@RequestParam(value = "name", required = false) String name,
+                                           @RequestParam("userId") Long userId,
+                                           @RequestParam(value = "searching", required = false,
+                                                   defaultValue = "false") Boolean searching)
             throws UserException {
-
-        System.out.println("query : " + name);
-        System.out.println("userId : " + userId);
-        System.out.println("searching : " + searching);
-
-        if(searching == false){
-            List<Chat> chats = chatService.findAllChatByUserId(userId);
-
-            Collections.sort(chats, new Comparator<Chat>() {
-                @Override
-                public int compare(Chat o1, Chat o2) {
-                    return o2.getMessages().get(o2.getMessages().size() - 1).getTimestamp()
-                            .compareTo(o1.getMessages().get(o1.getMessages().size() - 1).getTimestamp());
-                }
-            });
-
-            List<Users> users = new ArrayList<>();
-
-            for(Chat chat : chats){
-                for(Users user : chat.getUsers()){
-                    if(user.getId() != userId){
-                        users.add(user);
-                    }
-                }
-            }
-
-            users = users.stream().filter(user -> user.getId() != userId).toList();
-
-            System.out.println("users : " + users);
-
-            return new ResponseEntity<>(users, HttpStatus.OK);
-
-        }
-
-        List<Users> users = userService.searchUser(name);
-
-        users = users.stream().filter(user -> user.getId() != userId).toList();
-
-
-
-        System.out.println("users : " + users);
-
-        return new ResponseEntity<>(users, HttpStatus.OK);
+        return userService.getUsers(name,userId);
     }
+
 
 }

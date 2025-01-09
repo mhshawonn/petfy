@@ -20,6 +20,11 @@ public interface UsersRepo extends JpaRepository<Users,Long> {
     @Query("select u from Users u where u.name Like :query%")
     public List<Users> searchUser(@Param("query") String query);
 
+    @Query("SELECT new com.pet.Pet.DTO.UserDTO(u.id, u.name, u.profilePic) " +
+            "FROM Users u WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<UserDTO> searchByName(@Param("name") String name);
+
+
 //    @Query("SELECT new com.pet.Pet.DTO.UserDTO(u.id, u.name, u.profilePic) FROM User u WHERE u.id = :id")
 //    UserDTO findByIdFilter(@Param("id") Long id);
 }
