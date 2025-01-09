@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaCamera, FaEdit } from 'react-icons/fa';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
+import Image from "./default.gif"
 
 const ProfileHeader = () => {
   const { user, updateUser } = useAuth();
@@ -68,7 +69,7 @@ const ProfileHeader = () => {
     <div className="profile-header flex flex-col items-center">
       <div className="relative">
         <img 
-          src={profile.profilePicUrl || '/default-profile.png'} 
+          src={profile.profilePicUrl || Image} 
           alt="Profile" 
           className="w-32 h-32 rounded-full object-cover"
         />

@@ -7,6 +7,9 @@ export default {
   theme: {
     extend: {
       container:{
+        maxHeight: {
+          'chat': 'calc(100vh - 8rem)',
+        },
         center:true,
         padding:{
           DEFAULT: "1rem",
