@@ -16,18 +16,20 @@ function CreateBlog() {
     const formData = new FormData();
     formData.append('blog', JSON.stringify({ title, content }));
     Array.from(files).forEach((file) => formData.append('files', file));
+    console.log('Tag:', tags);
+    console.log('Tags:', tags.split(',').map(tag => parseInt(tag.trim())));
     formData.append('tag', tags.split(',').map(tag => parseInt(tag.trim())));
 
-    try {
-      const response = await axios.post('http://localhost:8080/blog/create', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      console.log('Blog created successfully:', response.data);
-    } catch (error) {
-      console.error('Error creating blog:', error);
-    }
+    // try {
+    //   const response = await axios.post('http://localhost:8080/blog/create', formData, {
+    //     headers: {
+    //       'Content-Type': 'multipart/form-data',
+    //     },
+    //   });
+    //   console.log('Blog created successfully:', response.data);
+    // } catch (error) {
+    //   console.error('Error creating blog:', error);
+    // }
   };
 
   return (

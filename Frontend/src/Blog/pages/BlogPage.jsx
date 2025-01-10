@@ -1,12 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { blogService } from '../services/blogService';
-import BlogCard from '../components/BlogCard';
-import CreateBlog from '../components/CreateBlog';
+import React, { useState, useEffect } from "react";
+import { blogService } from "../services/blogService";
+import BlogCard from "../components/BlogCard";
+import CreateBlog from "../components/CreateBlog";
+import { useDispatch, useSelector } from "react-redux";
+import { currentUser } from "../../Redux/Auth/Action";
 
 const BlogPage = () => {
   const [blogs, setBlogs] = useState([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  const { auth } = useSelector((store) => store);
+  const token = localStorage.getItem("authToken");
+
+  useEffect(() => {
+    if (!token) {
+      dispatch(currentUser(token));
+    }
+  }, []);
+
 
   useEffect(() => {
     fetchBlogs();
@@ -15,16 +28,16 @@ const BlogPage = () => {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const data = await blogService.getBlogs(page);
-      setBlogs(prevBlogs => [...prevBlogs, ...data.content]);
+      const data = await blogService.getBlogs(page, auth?.reqUser?.id);
+      setBlogs((prevBlogs) => [...prevBlogs, ...data.content]);
     } catch (error) {
-      console.error('Error fetching blogs:', error);
+      console.error("Error fetching blogs:", error);
     }
     setLoading(false);
   };
 
   const handleLoadMore = () => {
-    setPage(prevPage => prevPage + 1);
+    setPage((prevPage) => prevPage + 1);
   };
 
   return (
@@ -38,7 +51,7 @@ const BlogPage = () => {
         <div className="px-4 py-6 sm:px-0">
           <CreateBlog onBlogCreated={fetchBlogs} />
           <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {blogs.map(blog => (
+            {blogs.map((blog) => (
               <BlogCard key={blog.id} blog={blog} />
             ))}
           </div>

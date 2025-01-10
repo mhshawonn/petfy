@@ -1,5 +1,6 @@
 package com.pet.Pet.Controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pet.Pet.DTO.CommentDTO;
 import com.pet.Pet.DTO.FeedDTO;
 import com.pet.Pet.DTO.ReactDTO;
@@ -13,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
+
 @CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
 @RequestMapping("/blog")
@@ -24,16 +27,22 @@ public class BlogController {
 
 
     @PostMapping("/create")
-    public String createBlog(@RequestPart Blog blog, @RequestPart List<MultipartFile> files,
-                             @RequestParam List<Integer> tag) throws IOException {
+    public String createBlog(@RequestPart("blog") String blogJson, @RequestPart("files") List<MultipartFile> files,
+                             @RequestParam(required = false) List<String> tag,
+                             @RequestParam("userId") Long userId) throws IOException {
 
+
+
+        ObjectMapper mapper = new ObjectMapper();
+        Blog blog = mapper.readValue(blogJson, Blog.class);
+        List<Integer> tagList = tag != null ? tag.stream().map(Integer::parseInt).collect(Collectors.toList()) : null;
         System.out.println(blog);
-        return blogService.createBlog(blog,files,tag);
+        return blogService.createBlog(blog,files,tagList, userId);
     }
 
     @GetMapping("/get/{page}")
-    public Page<Blog> getPets(@PathVariable int page){
-        return blogService.getBlogs(page);
+    public Page<Blog> getPets(@PathVariable int page, @RequestParam("userId") Long userId) {
+        return blogService.getBlogs(page, userId);
     }
 
     @GetMapping("/giveReact")
