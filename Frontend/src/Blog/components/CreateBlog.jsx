@@ -1,36 +1,51 @@
-import React, { useState } from 'react';
-import { blogService } from '../services/blogService';
+import React, { useState } from "react";
+import { blogService } from "../services/blogService";
+import { useDispatch, useSelector } from "react-redux";
+import { currentUser } from "../../Redux/Auth/Action";
+import { useEffect } from "react";
+
+
 
 const CreateBlog = ({ onBlogCreated }) => {
+  const dispatch = useDispatch();
+  const { auth } = useSelector((store) => store);
+  const token = localStorage.getItem("authToken");
+
+  useEffect(() => {
+    if (!token) {
+      dispatch(currentUser(token));
+    }
+  }, []);
+
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
+    title: "",
+    content: "",
     files: [],
-    tags: []
+    tags: [],
   });
   const [loading, setLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleFileChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      files: Array.from(e.target.files)
+      files: Array.from(e.target.files),
     }));
   };
 
   const handleTagChange = (e) => {
-    const tags = e.target.value.split(',').map(tag => tag.trim());
-    setFormData(prev => ({
+    const tags = e.target.value.split(",").map((tag) => tag.trim());
+    setFormData((prev) => ({
       ...prev,
-      tags
+      tags,
     }));
   };
 
@@ -41,26 +56,26 @@ const CreateBlog = ({ onBlogCreated }) => {
     try {
       const blogData = {
         title: formData.title,
-        content: formData.content
+        content: formData.content,
       };
 
-      await blogService.createBlog(blogData, formData.files, formData.tags);
-      alert('Blog created successfully!');
-      
+      await blogService.createBlog(blogData, formData.files, formData.tags, auth?.reqUser?.id);
+      alert("Blog created successfully!");
+
       // Reset form
       setFormData({
-        title: '',
-        content: '',
+        title: "",
+        content: "",
         files: [],
-        tags: []
+        tags: [],
       });
       setIsExpanded(false);
-      
+
       if (onBlogCreated) {
         onBlogCreated();
       }
     } catch (error) {
-      alert(error.message || 'Failed to create blog');
+      alert(error.message || "Failed to create blog");
     } finally {
       setLoading(false);
     }
@@ -74,10 +89,10 @@ const CreateBlog = ({ onBlogCreated }) => {
       >
         <h2 className="text-xl font-semibold flex items-center justify-between">
           Create a New Blog Post
-          <span>{isExpanded ? '▼' : '▶'}</span>
+          <span>{isExpanded ? "▼" : "▶"}</span>
         </h2>
       </div>
-      
+
       {isExpanded && (
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
@@ -136,7 +151,7 @@ const CreateBlog = ({ onBlogCreated }) => {
             <input
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               type="text"
-              value={formData.tags.join(', ')}
+              value={formData.tags.join(", ")}
               onChange={handleTagChange}
               placeholder="tag1, tag2, tag3"
             />
@@ -147,7 +162,7 @@ const CreateBlog = ({ onBlogCreated }) => {
             type="submit"
             disabled={loading}
           >
-            {loading ? 'Creating...' : 'Create Blog'}
+            {loading ? "Creating..." : "Create Blog"}
           </button>
         </form>
       )}
