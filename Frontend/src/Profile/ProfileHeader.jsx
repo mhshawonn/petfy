@@ -1,108 +1,155 @@
-import React, { useState, useEffect } from 'react';
-import { FaCamera, FaEdit } from 'react-icons/fa';
-import axios from 'axios';
-import { useAuth } from './AuthContext';
-import Image from "./default.gif"
+import React, { useState, useEffect } from "react";
+import { FaCamera, FaEdit } from "react-icons/fa";
+import axios from "axios";
+// import { useAuth } from './AuthContext';
+import { useDispatch, useSelector } from "react-redux";
+import { currentUser } from "../Redux/Auth/Action";
+import Image from "./default.gif";
+import { uploadFileToFirebase } from "../FirebaseService";
+
+const BASE_API_URL = "http://localhost:8080";
 
 const ProfileHeader = () => {
-  const { user, updateUser } = useAuth();
+  // const { user, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
-  const [bio, setBio] = useState('');
+  const [bio, setBio] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [profilePic, setProfilePic] = useState(null);
+
+  const dispatch = useDispatch();
+  const { auth } = useSelector((store) => store);
+  const token = localStorage.getItem("authToken");
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await axios.get('/user/myProfile', {
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          }
-        });
-        setProfile(response.data);
-        setBio(response.data.bio || '');
-      } catch (error) {
-        console.error('Profile fetch error', error);
-      }
-    };
+    if (token && auth?.reqUser == null) {
+      dispatch(currentUser(token));
+    }
 
-    fetchProfile();
+    if (auth?.reqUser) {
+      setProfile(auth?.reqUser);
+      setBio(auth?.reqUser?.bio || "");
+      setProfilePic(auth?.reqUser?.profilePic);
+    }
   }, []);
 
   const handleProfilePicUpload = async (event) => {
     const file = event.target.files[0];
-    const formData = new FormData();
-    formData.append('multipartFile', file);
+
+    if (file == null) return;
+
+    const fileUrl = await uploadFileToFirebase(file);
 
     try {
-      const response = await axios.post('/user/profilePic', formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+      const response = await axios.post(
+        `${BASE_API_URL}/user/upload/image/${auth?.reqUser?.id}`,
+        null,
+        {
+          params: { imageUrl: fileUrl },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
-      updateUser(response.data);
+      );
+
+      if (response.status === 200) {
+        dispatch(currentUser(token));
+      } else {
+        console.log("error in uploading image");
+      }
+
+      setIsEditing(false);
     } catch (error) {
-      console.error('Profile pic upload error', error);
+      console.error("Profile pic upload error", error);
     }
   };
 
   const handleBioUpdate = async () => {
     try {
-      const response = await axios.post('/user/updateBio', 
-        { bio: bio },
+      const response = await axios.post(
+        `${BASE_API_URL}/user/updateBio/${auth?.reqUser?.id}`,
+        null,
         {
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          }
+          params: { bio: bio },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      updateUser(response.data);
+
+      console.log("response : ", response);
+
+      if (response.status === 200) {
+        dispatch(currentUser(token));
+
+        console.log("Bio updated successfully");
+        // No need to manually update profile here, as it will automatically re-render on state change
+      } else {
+        console.log("error in uploading image");
+      }
+
       setIsEditing(false);
     } catch (error) {
-      console.error('Bio update error', error);
+      console.error("Bio update error", error);
     }
   };
 
-  if (!profile) return <div>Loading...</div>;
+  useEffect(() => {
+    setProfile(auth?.reqUser);
+    setBio(auth?.reqUser?.bio || "");
+    setProfilePic(auth?.reqUser?.profilePic);
+  }, [token]);
+
+  useEffect(() => {
+    if (auth?.reqUser) {
+      setProfile(auth?.reqUser);
+      setBio(auth?.reqUser?.bio || "");
+      setProfilePic(auth?.reqUser?.profilePic);
+    }
+  }, [profile, auth?.reqUser]);
+
+  if (profile == null) return <div>Loading...</div>;
 
   return (
     <div className="profile-header flex flex-col items-center">
       <div className="relative">
-        <img 
-          src={profile.profilePicUrl || Image} 
-          alt="Profile" 
+        <img
+          src={profilePic || Image}
+          alt="Profile"
           className="w-32 h-32 rounded-full object-cover"
         />
+
         <label className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer">
           <FaCamera />
-          <input 
-            type="file" 
-            accept="image/*" 
+          <input
+            type="file"
+            accept="image/*"
             onChange={handleProfilePicUpload}
-            className="hidden" 
+            className="hidden"
           />
         </label>
       </div>
 
       <div className="mt-4 text-center">
-        <h2 className="text-2xl font-bold">{profile.username}</h2>
-        
+        <h2 className="text-2xl font-bold">{profile?.username}</h2>
+
         {isEditing ? (
           <div className="mt-2">
-            <textarea 
+            <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               className="w-full p-2 border rounded"
               maxLength={200}
             />
             <div className="flex justify-center space-x-2 mt-2">
-              <button 
+              <button
                 onClick={handleBioUpdate}
                 className="bg-blue-500 text-white px-4 py-2 rounded"
               >
                 Save
               </button>
-              <button 
+              <button
                 onClick={() => setIsEditing(false)}
                 className="bg-gray-300 text-black px-4 py-2 rounded"
               >
@@ -112,8 +159,8 @@ const ProfileHeader = () => {
           </div>
         ) : (
           <div className="mt-2">
-            <p className="text-gray-600">{profile.bio || 'No bio yet'}</p>
-            <button 
+            <p className="text-gray-600">{profile.bio || "No bio yet"}</p>
+            <button
               onClick={() => setIsEditing(true)}
               className="mt-2 flex items-center gap-2 mx-auto"
             >
