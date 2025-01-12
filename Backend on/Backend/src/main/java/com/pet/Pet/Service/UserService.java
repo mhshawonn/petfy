@@ -151,9 +151,7 @@ public class UserService {
         return usersRepo.findByUsername(user.getUsername());
     }
 
-    public Users updateBio(String newBio) {
-        UserPrincipal userPrincipal = getUserPrincipal();
-        Users user = usersRepo.findByUsername(userPrincipal.getUsername());
+    public Users updateBio(Users user ,String newBio) {
         user.setBio(newBio);
         return usersRepo.save(user);
     }
@@ -199,4 +197,8 @@ public class UserService {
         return selectUsers;
     }
 
+    public Users uploadProfileImage(Users user, String imageUrl) {
+        user.setProfilePic(imageUrl);
+        return usersRepo.save(user);
+    }
 }

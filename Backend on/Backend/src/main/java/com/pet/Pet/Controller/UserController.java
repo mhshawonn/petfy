@@ -13,6 +13,7 @@ import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,8 @@ public class UserController {
 
     @Autowired
     private ChatService chatService;
+
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Users user) {
@@ -103,6 +106,8 @@ public class UserController {
         return new ResponseEntity<>(status, HttpStatus.OK);
     }
 
+
+
     @PostMapping("/coverPic")
     public ResponseEntity<?> coverPic(@RequestPart MultipartFile multipartFile) throws IOException {
         String status = userService.uploadPic(multipartFile,1);
@@ -125,10 +130,31 @@ public class UserController {
 //        return "Logged Out";
 //    }
 
-    @PostMapping("/updateBio")
-    public ResponseEntity<?> updateBio(@RequestBody Map<String, String> requestBody) {
-        String newBio = requestBody.get("bio");
-        Users updatedUser = userService.updateBio(newBio);
+    @PostMapping(path = "/upload/image/{userId}")
+    public ResponseEntity< ? > uploadProfileImageHandler( @PathVariable Long userId,
+                                                          @RequestParam("imageUrl") String imageUrl) throws IOException {
+        Users user = userService.getProfile(userId);
+        if ( user == null ) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Profile not found");
+        }
+        user = userService.uploadProfileImage(user, imageUrl);
+        System.out.println("user image updated : " + user.getProfilePic());
+        return ResponseEntity.ok(user);
+    }
+
+    @PostMapping("/updateBio/{userId}")
+    public ResponseEntity<?> updateBio(@PathVariable Long userId
+            , @RequestParam("bio") String bio) {
+
+        System.out.println("bio : " + bio);
+        
+        Users user = userService.getProfile(userId);
+        if ( user == null ) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Profile not found");
+        }
+
+        Users updatedUser = userService.updateBio(user, bio);
+        System.out.println("user bio updated : " + updatedUser.getBio());
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
