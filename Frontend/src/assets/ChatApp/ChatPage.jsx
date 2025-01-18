@@ -13,7 +13,6 @@ import { createMessage, getAllMessages } from "../../Redux/Message/Action";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 
-
 const ChatPage = () => {
   const [queries, setQueries] = useState("");
   const [currentChat, setCurrentChat] = useState(null);
@@ -90,22 +89,28 @@ const ChatPage = () => {
   };
 
   const handleSearch = (keyword) => {
-    dispatch(searchUser({ keyword, token, userId: auth?.reqUser?.id, searching: true }));
+    dispatch(
+      searchUser({ keyword, token, userId: auth?.reqUser?.id, searching: true })
+    );
   };
 
   const handleCreateNewMessage = () => {
-    dispatch(createMessage({
-      senderUserId: auth?.reqUser?.id,
-      data: { chatId: currentChat?.id, content: content, type: "text" }
-    }));
+    dispatch(
+      createMessage({
+        senderUserId: auth?.reqUser?.id,
+        data: { chatId: currentChat?.id, content: content, type: "text" },
+      })
+    );
     setContent("");
   };
 
   const handleSendFile = () => {
-    dispatch(createMessage({
-      senderUserId: auth?.reqUser?.id,
-      data: { chatId: currentChat?.id, content: selectedFile, type: "image" }
-    }));
+    dispatch(
+      createMessage({
+        senderUserId: auth?.reqUser?.id,
+        data: { chatId: currentChat?.id, content: selectedFile, type: "image" },
+      })
+    );
     setShowFileInput(false);
     setSelectedFile(null);
   };
@@ -118,18 +123,27 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (currentChat?.id) {
-      dispatch(getAllMessages({
-        chatId: currentChat?.id,
-        userId: auth?.reqUser?.id,
-        token: token,
-      }));
+      dispatch(
+        getAllMessages({
+          chatId: currentChat?.id,
+          userId: auth?.reqUser?.id,
+          token: token,
+        })
+      );
     }
   }, [currentChat, message.newMessage]);
 
   useEffect(() => {
     if (token) {
       dispatch(currentUser(token));
-      dispatch(searchUser({ keyword: "*", token, userId: auth?.reqUser?.id, searching: false }));
+      dispatch(
+        searchUser({
+          keyword: "*",
+          token,
+          userId: auth?.reqUser?.id,
+          searching: false,
+        })
+      );
     }
   }, [token]);
 
@@ -148,45 +162,75 @@ const ChatPage = () => {
     setShowPicker(false);
   };
 
+  const handleClickOnChatCard = (other_userId) => {
+    dispatch(
+      createChat({ reqUserId: auth?.reqUser?.id, otherUserId: other_userId })
+    );
+    setQueries("");
+  };
+
   return (
-   
-      <div className="h-full flex overflow-hidden">
-        {/* Left Sidebar */}
-        <div className="w-[320px] flex flex-col border-r border-gray-200 bg-white">
-          {/* User Profile Header */}
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <img
-                  className="w-10 h-10 rounded-full"
-                  src={auth?.reqUser?.profilePic || "default-avatar.png"}
-                  alt="Profile"
-                />
-                <span className="font-semibold">{auth?.reqUser?.name}</span>
-              </div>
-            </div>
-          </div>
-  
-          {/* Search Bar */}
-          <div className="p-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search in messages"
-                className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 focus:outline-none"
-                value={queries}
-                onChange={(e) => {
-                  setQueries(e.target.value);
-                  handleSearch(e.target.value);
-                }}
+    <div className="h-full flex overflow-hidden">
+      {/* Left Sidebar */}
+      <div className="w-[320px] flex flex-col border-r border-gray-200 bg-white">
+        {/* User Profile Header */}
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <img
+                className="w-10 h-10 rounded-full"
+                src={auth?.reqUser?.profilePic || "default-avatar.png"}
+                alt="Profile"
               />
-              <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <span className="font-semibold">{auth?.reqUser?.name}</span>
             </div>
           </div>
-  
-          {/* Chats List */}
-          <div className="flex-1 overflow-y-auto">
-            {chat.chats.map((item) => (
+        </div>
+
+        {/* Search Bar */}
+        <div className="p-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search people"
+              className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 focus:outline-none"
+              value={queries}
+              onChange={(e) => {
+                setQueries(e.target.value);
+                handleSearch(e.target.value);
+              }}
+            />
+            <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+          </div>
+        </div>
+
+        {/* Chats List */}
+        <div className="flex-1 overflow-y-auto">
+          {queries &&
+            searchedUsers &&
+            searchedUsers.length > 0 &&
+            searchedUsers
+              ?.filter((item) => item?.id !== auth?.reqUser?.id)
+              .map((item) => (
+                <div
+                  key={item?.id}
+                  onClick={() => handleClickOnChatCard(item?.id)}
+                >
+                  <hr />
+                  <ChatCard
+                    key={item.id}
+                    name={item?.name}
+                    userImg={
+                      item?.profilePic ||
+                      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+                    }
+                  />
+                </div>
+              ))}
+
+          {chat?.chats?.length > 0 &&
+            !queries &&
+            chat.chats?.map((item) => (
               <div
                 key={item.id}
                 onClick={() => handleCurrentChat(item)}
@@ -209,99 +253,99 @@ const ChatPage = () => {
                 />
               </div>
             ))}
+        </div>
+      </div>
+
+      {/* Chat Area */}
+      {currentChat ? (
+        <div className="flex-1 flex flex-col bg-white">
+          {/* Chat Header */}
+          <div className="px-4 py-3 border-b flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <img
+                className="w-10 h-10 rounded-full"
+                src={currentChat?.users[0]?.profile_pic}
+                alt=""
+              />
+              <span className="font-semibold">
+                {currentChat?.users[0]?.name}
+              </span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <AiOutlineSearch className="text-gray-600 text-xl cursor-pointer" />
+              <BsThreeDotsVertical className="text-gray-600 text-xl cursor-pointer" />
+            </div>
+          </div>
+
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+            <div className="space-y-2">
+              {messages?.map((item, i) => (
+                <MessageCard
+                  key={i}
+                  isReqUserMessage={item?.user?.id === auth?.reqUser?.id}
+                  content={item?.content}
+                  type={item?.type}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Message Input */}
+          <div className="p-4 border-t">
+            {showPicker && (
+              <div className="absolute bottom-20 left-4">
+                <EmojiPicker onEmojiClick={handleEmojiClick} />
+              </div>
+            )}
+
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setShowPicker(!showPicker)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <BsEmojiSmile className="text-gray-600 text-xl" />
+              </button>
+              <button
+                onClick={() => setShowFileInput(!showFileInput)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <ImAttachment className="text-gray-600 text-xl" />
+              </button>
+              <input
+                type="text"
+                placeholder="Message..."
+                className="flex-1 px-4 py-2 rounded-full bg-gray-100 focus:outline-none"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleCreateNewMessage();
+                    setContent("");
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
-  
-        {/* Chat Area */}
-        {currentChat ? (
-          <div className="flex-1 flex flex-col bg-white">
-            {/* Chat Header */}
-            <div className="px-4 py-3 border-b flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <img
-                  className="w-10 h-10 rounded-full"
-                  src={currentChat?.users[0]?.profile_pic}
-                  alt=""
-                />
-                <span className="font-semibold">
-                  {currentChat?.users[0]?.name}
-                </span>
-              </div>
-              <div className="flex items-center space-x-4">
-                <AiOutlineSearch className="text-gray-600 text-xl cursor-pointer" />
-                <BsThreeDotsVertical className="text-gray-600 text-xl cursor-pointer" />
-              </div>
+      ) : (
+        // Empty State
+        <div className="flex-1 flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="text-gray-400 mb-4">
+              <img
+                src="messenger-logo.png"
+                alt="Messenger"
+                className="w-20 h-20 mx-auto"
+              />
             </div>
-  
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-              <div className="space-y-2">
-                {messages?.map((item, i) => (
-                  <MessageCard
-                    key={i}
-                    isReqUserMessage={item?.user?.id === auth?.reqUser?.id}
-                    content={item?.content}
-                    type={item?.type}
-                  />
-                ))}
-              </div>
-            </div>
-  
-            {/* Message Input */}
-            <div className="p-4 border-t">
-              {showPicker && (
-                <div className="absolute bottom-20 left-4">
-                  <EmojiPicker onEmojiClick={handleEmojiClick} />
-                </div>
-              )}
-              
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setShowPicker(!showPicker)}
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <BsEmojiSmile className="text-gray-600 text-xl" />
-                </button>
-                <button
-                  onClick={() => setShowFileInput(!showFileInput)}
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <ImAttachment className="text-gray-600 text-xl" />
-                </button>
-                <input
-                  type="text"
-                  placeholder="Message..."
-                  className="flex-1 px-4 py-2 rounded-full bg-gray-100 focus:outline-none"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleCreateNewMessage();
-                      setContent("");
-                    }
-                  }}
-                />
-              </div>
-            </div>
+            <h3 className="text-xl font-semibold text-gray-700">
+              Select a chat to start messaging
+            </h3>
           </div>
-        ) : (
-          // Empty State
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <div className="text-gray-400 mb-4">
-                <img
-                  src="messenger-logo.png"
-                  alt="Messenger"
-                  className="w-20 h-20 mx-auto"
-                />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-700">
-                Select a chat to start messaging
-              </h3>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
+        </div>
+      )}
+    </div>
+  );
+};
 export default ChatPage;
