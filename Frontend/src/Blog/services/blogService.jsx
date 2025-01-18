@@ -43,6 +43,7 @@ export const blogService = {
       const response = await axios.post(`${API_URL}/create`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
       });
       return response.data;
@@ -56,6 +57,9 @@ export const blogService = {
     try {
       const response = await axios.get(`${API_URL}/giveReact`, {
         params: { id, type },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
       });
       return response.data;
     } catch (error) {
@@ -67,6 +71,9 @@ export const blogService = {
     try {
       const response = await axios.get(`${API_URL}/showReact`, {
         params: { id },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
       });
       return response.data;
     } catch (error) {

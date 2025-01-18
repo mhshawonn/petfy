@@ -1,13 +1,64 @@
-import { useState } from 'react';
-import { FaBell, FaHeart, FaComment } from 'react-icons/fa'; // FaBell, FaHeart, and FaComment are examples
+import { useState, useEffect } from 'react';
+import { FaBell, FaHeart, FaComment } from 'react-icons/fa'; 
+import axios from 'axios';
 
-export default function PostFooter() {
+const API_URL = 'http://localhost:8080/pet';
+
+export default function PostFooter({ postId }) {
   const [liked, setLike] = useState(false);
-  const [likes, setLikes] = useState(1000);
+  const [reactions, setReactions] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
 
-  const handleLike = () => {
-    setLike(!liked);
-    setLikes(likes + (liked ? -1 : 1));
+  // Fetch reactions when component mounts
+  useEffect(() => {
+    if (postId) { // Only fetch if postId exists
+      fetchReactions();
+    }
+  }, [postId]);
+
+  // Fetch reactions from backend
+  const fetchReactions = async () => {
+    if (!postId) return; // Guard clause
+    
+    try {
+      const response = await axios.get(`${API_URL}/getReact/${postId}`);
+      setReactions(response.data);
+      // Check if current user has liked the post
+      const userReaction = response.data.find(react => react.userId === getCurrentUserId());
+      setLike(!!userReaction);
+    } catch (error) {
+      console.error('Error fetching reactions:', error);
+    }
+  };
+
+  // Handle like button click
+  const handleLike = async () => {
+    if (!postId) {
+      console.error('Post ID is required');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API_URL}/giveReact`, {
+        params: {
+          id: 1,
+          type: liked ? 0 : 1
+        }
+      });
+
+      if (response.data === "success") {
+        setLike(!liked);
+        fetchReactions();
+      }
+    } catch (error) {
+      console.error('Error updating reaction:', error);
+    }
+  };
+
+  // Get current user ID
+  const getCurrentUserId = () => {
+    return 1; // Replace with actual user ID from your auth system
   };
 
   return (
@@ -20,30 +71,10 @@ export default function PostFooter() {
           <FaComment />
         </div>
       </div>
-      <p className='text-sm font-bold text-black '>
-        1000 likes
-
-      </p>
       
-      <p className="text-sm font-normal">
-        _Nice
+      <p className="text-sm font-bold text-black">
+        {reactions.length} {reactions.length === 1 ? 'like' : 'likes'}
       </p>
-      <p className="text-sm text-gray-500 py-2">
-        View all 1000 comments
-      </p>
-
-      <div className="flex items-center gap-2 w-full py-2">
-        <div className="flex-grow">
-          <input
-            type="text"
-            placeholder="Add comment ..."
-            className="w-full border-b border-gray-300 focus:outline-none focus:border-blue-500 text-sm py-1"
-          />
-        </div>
-        <button className="text-blue-500 text-sm font-medium hover:text-blue-600">
-          Post
-        </button>
-      </div>
     </>
   );
 }
