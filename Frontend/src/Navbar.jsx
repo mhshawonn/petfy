@@ -1,14 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Logo from "./assets/image/logopet.png";
 import aos from "aos";
 import "aos/dist/aos.css";
 import Profile from "./assets/image/user.png";
 import { Link } from 'react-router-dom';
+import { currentUser } from './Redux/Auth/Action';
+const BASE_API_URL = "http://localhost:8080";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Navbar() {
   React.useEffect(() => {
     aos.init({ duration: 200, easing: "ease-in-out" });
   }, []);
+
+  const dispatch = useDispatch(); 
+  const { auth } = useSelector((store) => store);  // access Redux store to get auth data
+  const token = localStorage.getItem("authToken");
+  const [profile, setProfile] = useState(null);
+
+
+  useEffect(()=>{
+    if(token && auth?.reqUser == null){
+      dispatch(currentUser(token))
+
+    }
+    if(auth?.reqUser){
+      setProfile(auth?.reqUser)
+    }
+  },[token,auth,dispatch])
 
   return (
     <div
@@ -68,9 +87,9 @@ export default function Navbar() {
               <div>
                 <Link to='/profile'>
                   <img
-                    src={Profile}
+                    src={profile?.profilePic || Profile}
                     alt="User Profile"
-                    className="w-16 h-15 hover:drop-shadow-2xl transition-all duration-300 transform hover:scale-110"
+                    className="w-16 h-16 rounded-full object-cover hover:drop-shadow-2xl transition-all duration-300 transform hover:scale-110"
                   />
                 </Link>
               </div>
