@@ -14,6 +14,7 @@ import LogIn from "./LogIn/LogIn";
 import SignUp from "./LogIn/SignUp";
 import ChatPage from './../src/assets/ChatApp/ChatPage';
 import BlogPage from './Blog/pages/BlogPage';
+import ChatBot from './ChatBot/ChatBot';
 
 const router = createBrowserRouter([
   {
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
         path: "/blog",
         element: <BlogPage />
       },
+      {
+        path: "/chatbot",
+        element: <ChatBot />
+      }
     ]
   },
 ]);
