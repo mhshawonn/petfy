@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaHeart, FaComment } from 'react-icons/fa';
+const BASE_API_URL = "http://localhost:8080";
 
 const ProfilePosts = () => {
   const [posts, setPosts] = useState([]);
