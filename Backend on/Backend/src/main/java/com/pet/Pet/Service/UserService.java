@@ -3,6 +3,7 @@ package com.pet.Pet.Service;
 import com.pet.Pet.DTO.UserDTO;
 import com.pet.Pet.Exceptions.UserException;
 import com.pet.Pet.Model.Address;
+import com.pet.Pet.Model.Pet;
 import com.pet.Pet.Model.UserPrincipal;
 import com.pet.Pet.Model.Users;
 import com.pet.Pet.Repo.AddressRepo;
@@ -201,4 +202,5 @@ public class UserService {
         user.setProfilePic(imageUrl);
         return usersRepo.save(user);
     }
+
 }

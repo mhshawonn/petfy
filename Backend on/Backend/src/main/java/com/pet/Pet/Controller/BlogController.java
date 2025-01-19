@@ -2,11 +2,11 @@ package com.pet.Pet.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pet.Pet.DTO.CommentDTO;
-import com.pet.Pet.DTO.FeedDTO;
 import com.pet.Pet.DTO.ReactDTO;
 import com.pet.Pet.Model.Blog;
 import com.pet.Pet.Service.BlogService;
 import com.pet.Pet.Service.CommentService;
+import com.pet.Pet.Service.SavedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +24,8 @@ public class BlogController {
     private BlogService blogService;
     @Autowired
     private CommentService commentService;
+    @Autowired
+    private SavedService savedService;
 
 
     @PostMapping("/create")
@@ -41,8 +43,8 @@ public class BlogController {
     }
 
     @GetMapping("/get/{page}")
-    public Page<Blog> getPets(@PathVariable int page, @RequestParam("userId") Long userId) {
-        return blogService.getBlogs(page, userId);
+    public Page<Blog> getPets(@PathVariable int page) {
+        return blogService.getBlogs(page);
     }
 
     @GetMapping("/giveReact")
@@ -92,6 +94,16 @@ public class BlogController {
     @GetMapping("/getReactByTypeComment")
     public List<ReactDTO> getReactByTypeComment(@RequestParam Long id,@RequestParam int type){
         return commentService.getReactByType(id,type);
+    }
+
+    @GetMapping("/save/{id}")
+    public String SaveBlog(@PathVariable Long id){
+        return savedService.Save(id,1);
+    }
+
+    @GetMapping("/saved/{page}")
+    public Page<Blog> getSavedBlog(@PathVariable int page){
+        return savedService.getSavedBlogs(page);
     }
 }
 

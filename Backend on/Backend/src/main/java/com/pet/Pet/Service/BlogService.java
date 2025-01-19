@@ -1,13 +1,8 @@
 package com.pet.Pet.Service;
 
-import com.pet.Pet.DTO.FeedDTO;
 import com.pet.Pet.DTO.ReactDTO;
-import com.pet.Pet.Model.Blog;
-import com.pet.Pet.Model.Tags;
-import com.pet.Pet.Model.UserPrincipal;
-import com.pet.Pet.Model.Users;
+import com.pet.Pet.Model.*;
 import com.pet.Pet.Repo.BlogRepo;
-import com.pet.Pet.Repo.ReactRepo;
 import com.pet.Pet.Repo.TagRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,9 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -81,24 +74,18 @@ public class BlogService {
         return "Blog created successfully";
     }
 
-    public Page<Blog> getBlogs(int page, Long userId) {
-        Users user = userService.getProfile(userId);
-        if (user == null) {
-            return null;
-        }
+    public Page<Blog> getBlogs(int page) {
+        UserPrincipal userDetails = userService.getUserPrincipal();
+        Long userId = userDetails != null ? userDetails.getId() : null;
         String sortAttribute = "id";
         Sort sort = Sort.by(Sort.Order.desc(sortAttribute));
 
         Pageable pageable = PageRequest.of(page, 10, sort);
 
-        Page<Blog> blogPages = processBlog(blogRepo.findAll(pageable), userId);
-
-        System.out.println(blogPages);
-
-        return blogPages;
+        return processBlog(blogRepo.findAll(pageable), userId);
     }
 
-    private Page<Blog> processBlog(Page<Blog> blogs, Long userId) {
+    public Page<Blog> processBlog(Page<Blog> blogs, Long userId) {
         if (userId != null) {
             for (Blog blog : blogs) {
                 blog.setReactType(reactService.findReactTypeByPostIdAndPostTypeAndUserIdAndIsSavedFalse(blog.getId(), 1, userId));
