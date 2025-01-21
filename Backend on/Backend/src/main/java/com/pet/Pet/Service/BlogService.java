@@ -4,6 +4,7 @@ import com.pet.Pet.DTO.ReactDTO;
 import com.pet.Pet.Model.*;
 import com.pet.Pet.Repo.BlogRepo;
 import com.pet.Pet.Repo.TagRepo;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,20 +33,12 @@ public class BlogService {
 
     public String createBlog(Blog blog,
                              List<MultipartFile> files,
-                             List<Integer> tags,
-                             Long userId)
+                             List<Long> tags)
             throws IOException {
-        System.out.println("in blog service");
-        Users user = userService.getProfile(userId);
-        System.out.println(user);
-
+        Users user = userService.getUser();
         if (user == null) {
             return "Only logged in users can create a blog";
         }
-        System.out.println("author : ");
-        blog.setAuthor(blog.getAuthor());
-
-        System.out.println(blog);
 
         List<String> urls = new ArrayList<String>();
         try {
@@ -61,7 +54,7 @@ public class BlogService {
         blog.setNumberOfComments(0L);
         blog.setReactCount(0L);
         List<Tags> tagsList = new ArrayList<>();
-        for(Integer tagId: tags){
+        for(Long tagId: tags){
             Tags tag = tagRepo.findById(tagId).orElse(null);
             if(tag == null) continue;
             tagsList.add(tag);

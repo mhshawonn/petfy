@@ -30,16 +30,15 @@ public class BlogController {
 
     @PostMapping("/create")
     public String createBlog(@RequestPart("blog") String blogJson, @RequestPart("files") List<MultipartFile> files,
-                             @RequestParam(required = false) List<String> tag,
+                             @RequestParam(required = false) List<Long> tag,
                              @RequestParam("userId") Long userId) throws IOException {
 
 
 
         ObjectMapper mapper = new ObjectMapper();
         Blog blog = mapper.readValue(blogJson, Blog.class);
-        List<Integer> tagList = tag != null ? tag.stream().map(Integer::parseInt).collect(Collectors.toList()) : null;
         System.out.println(blog);
-        return blogService.createBlog(blog,files,tagList, userId);
+        return blogService.createBlog(blog,files,tag);
     }
 
     @GetMapping("/get/{page}")
