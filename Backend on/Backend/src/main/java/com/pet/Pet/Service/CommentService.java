@@ -6,6 +6,7 @@ import com.pet.Pet.Model.Blog;
 import com.pet.Pet.Model.Comment;
 import com.pet.Pet.Model.UserPrincipal;
 import com.pet.Pet.Model.Users;
+import com.pet.Pet.Repo.BlogRepo;
 import com.pet.Pet.Repo.CommentRepo;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +33,13 @@ public class CommentService {
     private EntityManager entityManager;
     @Autowired
     private ReactService reactService;
+    @Autowired
+    private BlogRepo blogRepo;
 
     public String addComment(Long blogId, Long parentId, Long user_to, String content, List<MultipartFile> files) throws IOException {
         Users userFrom = userService.getUser();
+        Blog blog = blogRepo.findById(blogId).orElse(null);
+        if(blog==null) return "Blog not found";
         if (userFrom == null) {
             return "Log in to comment";
         }
@@ -47,7 +52,7 @@ public class CommentService {
         } catch (Exception e) {
             urls = null; // Handle file upload failure
         }
-
+        comment.setBlog(blog);
         comment.setMedia(urls);
         comment.setNumberOfChildComments(0);
         comment.setCommentDate(System.currentTimeMillis());
@@ -60,16 +65,16 @@ public class CommentService {
             comment.setUserTo(userTo);
         }
 
-        if (blogId != null) {
-            Blog blog = entityManager.getReference(Blog.class, blogId); // Create a proxy for the blog
-            comment.setBlog(blog);
-        }
-
         if (parentId != null) {
-            Comment parentComment = entityManager.getReference(Comment.class, parentId); // Create a proxy for the parent comment
+            Comment parentComment = commentRepo.findById(parentId).orElse(null);
             comment.setParent(parentComment);
+            assert parentComment != null;
+            parentComment.setNumberOfChildComments(parentComment.getNumberOfChildComments()+1);
+            commentRepo.save(parentComment);
         }
         commentRepo.save(comment);
+        blog.setNumberOfComments(blog.getNumberOfComments()+1);
+        blogRepo.save(blog);
         return "Comment added successfully";
     }
 

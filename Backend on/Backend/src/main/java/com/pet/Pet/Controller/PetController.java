@@ -1,14 +1,14 @@
 package com.pet.Pet.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pet.Pet.DTO.AdoptionDTO;
 import com.pet.Pet.DTO.FeedDTO;
 import com.pet.Pet.DTO.ReactDTO;
 import com.pet.Pet.Model.AdoptionRequest;
 import com.pet.Pet.Model.Pet;
 import com.pet.Pet.Service.PetService;
-import com.pet.Pet.Service.ReactService;
+import com.pet.Pet.Service.SavedService;
 import io.swagger.v3.oas.models.responses.ApiResponse;
-import jakarta.mail.Multipart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -25,6 +24,8 @@ import java.util.List;
 public class PetController {
     @Autowired
     private PetService petService;
+    @Autowired
+    private SavedService savedService;
 
 
 //    @PostMapping(value = "/add")
@@ -82,7 +83,7 @@ public ResponseEntity<ApiResponse> addPet(
     }
 
     @PostMapping("/request/{id}")
-    public String request(@PathVariable Long id, @RequestParam AdoptionRequest adoptionRequest,
+    public String request(@PathVariable Long id, @RequestPart AdoptionRequest adoptionRequest,
                           @RequestPart List<MultipartFile> files) throws IOException {
         return petService.requestPet(id,adoptionRequest,files);
     }
@@ -92,9 +93,31 @@ public ResponseEntity<ApiResponse> addPet(
         return petService.updateStatus(id);
     }
 
-    @GetMapping("/getAdoptionRequest/{id}")
-    public List<AdoptionRequest> getAdoptionRequest(@PathVariable Long id){
-        return petService.getAdoptionRequest(id);
+    @GetMapping("/getAdoptionRequest/{id}/{page}")
+    public Page<AdoptionRequest> getAdoptionRequest(@PathVariable Long id,@PathVariable int page,
+                                                    @RequestParam(defaultValue = "0") int order
+    ){
+        return petService.getAdoptionRequest(id,page,order);
     }
 
+    @GetMapping("/save/{id}")
+    public String SavePet(@PathVariable Long id){
+        return savedService.Save(id,0);
+    }
+
+    @GetMapping("/saved/{page}")
+    public Page<FeedDTO> savedPets(@PathVariable int page){
+        return savedService.getSavedPet(page,"id",0);
+    }
+
+    @GetMapping("/myRequest/{page}")
+    public Page<AdoptionRequest> getMyRequest(@PathVariable int page, @RequestParam(defaultValue = "0") int order
+    ){
+        return petService.getMyRequest(page,order);
+    }
+
+    @GetMapping("/myRequestByPet/{id}")
+    public List<AdoptionRequest> getMyRequestByPet(@PathVariable Long id){
+        return petService.getMyRequestByPet(id);
+    }
 }
