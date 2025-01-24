@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { currentUser } from "../../../Redux/Auth/Action";
+import { useDispatch, useSelector } from "react-redux";
 
 function AddPost({ onPostCreated }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -15,6 +17,17 @@ function AddPost({ onPostCreated }) {
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [categoryIds, setCategoryIds] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  // Fix: Select only the auth state
+  const auth = useSelector((state) => state.auth);
+  const token = localStorage.getItem("authToken");
+
+  useEffect(() => {
+    if (!token) {
+      dispatch(currentUser(token));
+    }
+  }, [dispatch, token]);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -105,6 +118,7 @@ function AddPost({ onPostCreated }) {
         {
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
         }
       );

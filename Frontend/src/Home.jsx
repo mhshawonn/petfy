@@ -44,6 +44,7 @@ const App = () => {
         <Card2 />
         <Footer />
       </div>
+      
     </Fragment>
   );
 };

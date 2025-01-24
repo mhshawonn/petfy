@@ -18,21 +18,24 @@ export default function Navbar() {
   const token = localStorage.getItem("authToken");
   const [profile, setProfile] = useState(null);
 
-
-  useEffect(()=>{
-    if(token && auth?.reqUser == null){
-      dispatch(currentUser(token))
-
+  useEffect(() => {
+    if(token && auth?.reqUser == null) {
+      dispatch(currentUser(token));
     }
-    if(auth?.reqUser){
-      setProfile(auth?.reqUser)
+    if(auth?.reqUser) {
+      setProfile(auth?.reqUser);
     }
-  },[token,auth,dispatch])
+  }, [token, auth, dispatch]);
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // State to manage the dropdown menu visibility
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen); // Toggle the dropdown menu
+  };
   return (
     <div
       data-aos="fade-down"
-      className="fixed top-0 left-0 w-full z-30 bg-black/10 backdrop-blur-sm py-4 sm:py-4 "
+      className="fixed top-0 left-0 w-full z-30 bg-black/10 backdrop-blur-sm py-4 sm:py-4"
     >
       <div className="container px-4 mx-auto">
         <div className="flex justify-between items-center">
@@ -52,7 +55,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Navigation Links */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex text-pink-500 font-bold">
             <ul className="flex items-center gap-6 text-xl py-4 sm:py-0">
               <li>
@@ -98,20 +101,44 @@ export default function Navbar() {
 
           {/* Mobile Navigation (Hamburger Menu for small screens) */}
           <div className="flex md:hidden items-center gap-4">
-            <div className="relative">
-              <button className="text-white text-2xl">
-                <span className="block w-6 h-0.5 bg-white my-1"></span>
-                <span className="block w-6 h-0.5 bg-white my-1"></span>
-                <span className="block w-6 h-0.5 bg-white my-1"></span>
-              </button>
-            </div>
+      {/* Hamburger Button */}
+      <div className="relative">
+        <button
+          onClick={toggleMenu} // Toggle the menu on click
+          className="text-white text-2xl"
+        >
+          <span className="block w-6 h-0.5 bg-white my-1"></span>
+          <span className="block w-6 h-0.5 bg-white my-1"></span>
+          <span className="block w-6 h-0.5 bg-white my-1"></span>
+        </button>
+
+        {/* Dropdown Menu */}
+        {isMenuOpen && (
+          <div className="absolute top-full left-0 mt-2 bg-black/80 rounded-lg w-40 py-2">
+            <ul className="text-white font-bold text-lg">
+              <li className="px-4 py-2 hover:bg-pink-500 transition-colors">
+                <Link to="/about" className="block">About</Link>
+              </li>
+              <li className="px-4 py-2 hover:bg-pink-500 transition-colors">
+                <Link to="/blog" className="block">Blog</Link>
+              </li>
+              <li className="px-4 py-2 hover:bg-pink-500 transition-colors">
+                <Link to="/pet" className="block">Pet</Link>
+              </li>
+              <li className="px-4 py-2 hover:bg-pink-500 transition-colors">
+                <Link to="/donate" className="block">Donate</Link>
+              </li>
+            </ul>
+          </div>
+        )}
+      </div>
             {/* Mobile Profile Image */}
             <div>
               <Link to='/profile'>
                 <img
-                  src={Profile}
+                  src={profile?.profilePic || Profile}
                   alt="User Profile"
-                  className="w-16 h-15 hover:drop-shadow-2xl transition-all duration-300 transform hover:scale-110"
+                  className="w-12 h-12 rounded-full object-cover hover:drop-shadow-2xl transition-all duration-300 transform hover:scale-110"
                 />
               </Link>
             </div>
