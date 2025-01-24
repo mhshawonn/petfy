@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class PetService {
@@ -64,6 +65,7 @@ public class PetService {
         pet.setMedia(urls);
         pet.setTimeStamp(System.currentTimeMillis());
         pet.setReportCount(0L);
+        pet.setNumberOfRequests(0L);
         pet.setStatus("Available");
         petRepo.save(pet);
         return "Pet added successfully";
@@ -80,7 +82,7 @@ public class PetService {
         return processPets(petRepo.findAllPet(pageable), userId);
     }
 
-    private Page<FeedDTO> processPets(Page<FeedDTO> allPet, Long userId) {
+    public Page<FeedDTO> processPets(Page<FeedDTO> allPet, Long userId) {
         if(userId!=null){
             for (FeedDTO feedDTO : allPet) {
                 feedDTO.setReactType(reactService.findReactTypeByPostIdAndPostTypeAndUserIdAndIsSavedFalse(feedDTO.getId(), 0,userId));
@@ -98,7 +100,7 @@ public class PetService {
         if(userDetails == null) return "User not Authenticated";
         Users user = usersRepo.findByUsername(userDetails.getUsername());
         Pet pet = petRepo.findById(id).orElseThrow(() -> new RuntimeException("Pet not found"));
-        pet.setNumberOfRequests(pet.getNumberOfRequests()+1);
+        pet.setNumberOfRequests(Optional.ofNullable(pet.getNumberOfRequests()).orElse(0L) + 1);
         adoptionRequest.setPet(pet);
         adoptionRequest.setRequestUsers(user);
         List<String> urls = firebaseService.uploadFiles(files);
@@ -122,9 +124,22 @@ public class PetService {
         return "Status updated successfully";
     }
 
-    public List<AdoptionRequest> getAdoptionRequest(Long id) {
-        return adoptRepo.findAllByPetId(id);
+    public Page<AdoptionRequest> getAdoptionRequest(Long petId, int page, int order) {
+        String sortAttribute = "id";
+        Sort sort = (order == 0) ? Sort.by(Sort.Order.asc(sortAttribute)) : Sort.by(Sort.Order.desc(sortAttribute));
+        Pageable pageable = PageRequest.of(page, 10, sort);
+        return adoptRepo.findAllByPetId(pageable, petId);
     }
+
+    public Page<AdoptionRequest> getMyRequest(int page, int order) {
+        Users users = userService.getUser();
+        if(users==null) return null;
+        String sortAttribute = "id";
+        Sort sort = (order == 0) ? Sort.by(Sort.Order.asc(sortAttribute)) : Sort.by(Sort.Order.desc(sortAttribute));
+        Pageable pageable = PageRequest.of(page, 10, sort);
+        return adoptRepo.findMyRequests(pageable,users.getId());
+    }
+
 
     public String addReact(Long id, int postType, int type, boolean isSaved) {
         return reactService.addReact(id,postType,type,isSaved);
@@ -132,5 +147,11 @@ public class PetService {
 
     public List<ReactDTO> getReactByPostIdAndPostType(Long id, int i) {
         return reactService.getReactByPostIdAndPostType(id,i);
+    }
+
+    public List<AdoptionRequest> getMyRequestByPet(Long id) {
+        Users users = userService.getUser();
+        if(users==null) return null;
+        return adoptRepo.findMyRequestByPet(id,users.getId());
     }
 }

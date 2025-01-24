@@ -5,6 +5,7 @@ import com.pet.Pet.DTO.LoginResponse;
 import com.pet.Pet.DTO.UserDTO;
 import com.pet.Pet.Exceptions.UserException;
 import com.pet.Pet.Model.Chat;
+import com.pet.Pet.Model.Pet;
 import com.pet.Pet.Model.Users;
 import com.pet.Pet.Service.ChatService;
 import com.pet.Pet.Service.UserService;
@@ -182,6 +183,5 @@ public class UserController {
             throws UserException {
         return userService.getUsers(name,userId);
     }
-
 
 }
