@@ -4,14 +4,14 @@ import BlogCard from "../components/BlogCard";
 import CreateBlog from "../components/CreateBlog";
 import { useDispatch, useSelector } from "react-redux";
 import { currentUser } from "../../Redux/Auth/Action";
+import CommentSection from "../components/Commnent"; // Importing the CommentSection component
 
 const BlogPage = () => {
   const [blogs, setBlogs] = useState([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
-
+  
   const dispatch = useDispatch();
-  // Fix: Select only the auth state
   const auth = useSelector((state) => state.auth);
   const token = localStorage.getItem("authToken");
 
@@ -19,7 +19,7 @@ const BlogPage = () => {
     if (!token) {
       dispatch(currentUser(token));
     }
-  }, [dispatch, token]); // Added missing dependencies
+  }, [dispatch, token]);
 
   useEffect(() => {
     fetchBlogs();
@@ -29,10 +29,6 @@ const BlogPage = () => {
     setLoading(true);
     try {
       const data = await blogService.getBlogs(page, auth?.reqUser?.id);
-      console.log('page data: ')
-      console.log(data)
-      
-      // Fix: Ensure no duplicate blogs by using Set or filtering
       setBlogs((prevBlogs) => {
         const newBlogs = [...prevBlogs];
         data.content.forEach((newBlog) => {
@@ -52,7 +48,6 @@ const BlogPage = () => {
     setPage((prevPage) => prevPage + 1);
   };
 
-  // Function to ensure unique keys
   const generateUniqueKey = (blog) => {
     return `blog-${blog.id}-${blog.createdAt || Date.now()}`;
   };
@@ -69,10 +64,11 @@ const BlogPage = () => {
           <CreateBlog onBlogCreated={fetchBlogs} />
           <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {blogs.map((blog) => (
-              <BlogCard 
-                key={generateUniqueKey(blog)} 
-                blog={blog} 
-              />
+              <div key={generateUniqueKey(blog)} className="bg-white p-6 rounded-lg shadow-md">
+                <BlogCard blog={blog} />
+                {/* Render CommentSection for each blog */}
+                <CommentSection blogId={blog.id} />
+              </div>
             ))}
           </div>
           {loading ? (

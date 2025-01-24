@@ -14,6 +14,8 @@ import LogIn from "./LogIn/LogIn";
 import SignUp from "./LogIn/SignUp";
 import ChatPage from './../src/assets/ChatApp/ChatPage';
 import BlogPage from './Blog/pages/BlogPage';
+import DonationPage from './Donation/DonationPage';
+import Donate from './Donation/donate/Donate';
 
 const router = createBrowserRouter([
   {
@@ -53,6 +55,15 @@ const router = createBrowserRouter([
         path: "/blog",
         element: <BlogPage />
       },
+      {
+        path: "/donate",
+        element: <DonationPage/>,
+        
+      },
+      {
+        path: "/donate/page",
+        element :<Donate/>,
+      }
     ]
   },
 ]);

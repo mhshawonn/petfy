@@ -46,7 +46,9 @@ public class SecuirityConfig {
                                     "/user/login","/user/reSentOtp/**","/user/isHasEmail/**","/pet/get/**",
                                     "pet/getPet/**","/user/Profile/**","/**","/animal/getAnimal",
                                     "/animal/getCategory/**","/address/get","/address/getByCity","/pet/add/**","/user/profilePic","/user/updateBio","/user/updateBio","pet/giveReact",
-                                    "pet/getReact/**","blog/giveReact/**")
+                                    "pet/getReact/**","blog/giveReact/**","blog/showReact",
+                                    "blog/showReactByReact","blog//addComment","blog//getComment/**",
+                                    "blog//getReply/**","blog/reactComment","blog//getReactComment")
                             .permitAll()
                             .anyRequest().authenticated())
                     .httpBasic(Customizer.withDefaults())
