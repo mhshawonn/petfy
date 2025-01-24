@@ -1,15 +1,12 @@
 package com.pet.Pet.Service;
 
-import com.pet.Pet.DTO.FeedDTO;
+import com.pet.Pet.Component.SaveStrategy;
+import com.pet.Pet.Component.SaveStrategyFactory;
+import com.pet.Pet.Builder.SavedBuilder;
 import com.pet.Pet.Model.*;
-import com.pet.Pet.Repo.BlogRepo;
-import com.pet.Pet.Repo.PetRepo;
 import com.pet.Pet.Repo.SavedRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,51 +16,35 @@ public class SavedService {
     @Autowired
     private SavedRepo savedRepo;
     @Autowired
-    private BlogRepo blogRepo;
+    private SaveStrategyFactory saveStrategyFactory;
     @Autowired
-    private PetRepo petRepo;
-    @Autowired PetService petService;
-    @Autowired BlogService blogService;
+    private SavedBuilder savedBuilder;
 
-    public String Save(Long id, int postType) {
+    public String save(Long id, int postType) {
         Users users = userService.getUser();
-        Saved saved = savedRepo.findByUserIdAndPostIdAndPostType(users.getId(),id,postType).orElse(null);
-        if(saved!=null) return "Saved successfully";
-        saved = new Saved();
-        if(postType==0){
-            Pet pet = petRepo.findPetById(id);
-            saved.setPet(pet);
+
+        if (savedRepo.findByUserIdAndPostIdAndPostType(users.getId(), id, postType).isPresent()) {
+            return "Already saved";
         }
-        else if(postType == 1){
-            Blog blog = blogRepo.findById(id).orElse(null);
-            saved.setBlog(blog);
-        }
-        saved.setPostType(postType);
-        saved.setPostId(id);
-        saved.setUser(users);
+
+        Saved saved = savedBuilder
+                .withPostType(postType)
+                .withPostId(id)
+                .withUser(users)
+                .build();
+
+        SaveStrategy strategy = saveStrategyFactory.getStrategy(postType);
+        strategy.processSave(saved);
+
         savedRepo.save(saved);
         return "Saved successfully";
     }
 
-    public Page<FeedDTO> getSavedPet(int page, String sortAttribute, int order) {
+    public Page<?> getSaved(int postType, int page, String sortAttribute, int order) {
         UserPrincipal userDetails = userService.getUserPrincipal();
         Long userId = userDetails != null ? userDetails.getId() : null;
-        if (sortAttribute == null) {
-            sortAttribute = "id";
-        }
-        Sort sort = (order == 0) ? Sort.by(Sort.Order.desc(sortAttribute)) : Sort.by(Sort.Order.asc(sortAttribute));
-        Pageable pageable = PageRequest.of(page, 10, sort);
-        return petService.processPets(savedRepo.findSavedPet(pageable,userId), userId);
-    }
 
-    public Page<Blog> getSavedBlogs(int page) {
-        UserPrincipal userDetails = userService.getUserPrincipal();
-        Long userId = userDetails != null ? userDetails.getId() : null;
-        String sortAttribute = "id";
-        Sort sort = Sort.by(Sort.Order.desc(sortAttribute));
-
-        Pageable pageable = PageRequest.of(page, 10, sort);
-
-        return blogService.processBlog(savedRepo.findSavedBlog(pageable,userId), userId);
+        SaveStrategy strategy = saveStrategyFactory.getStrategy(postType);
+        return strategy.getSaved(page, sortAttribute, order, userId);
     }
 }

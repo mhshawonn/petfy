@@ -1,10 +1,11 @@
 package com.pet.Pet.Service;
 
+import com.pet.Pet.Component.CommentFactory;
+import com.pet.Pet.Component.MediaLinkFactory;
 import com.pet.Pet.DTO.CommentDTO;
 import com.pet.Pet.DTO.ReactDTO;
 import com.pet.Pet.Model.Blog;
 import com.pet.Pet.Model.Comment;
-import com.pet.Pet.Model.UserPrincipal;
 import com.pet.Pet.Model.Users;
 import com.pet.Pet.Repo.BlogRepo;
 import com.pet.Pet.Repo.CommentRepo;
@@ -18,15 +19,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class CommentService {
     @Autowired
     private UserService userService;
-    @Autowired
-    private FirebaseService firebaseService;
     @Autowired
     private CommentRepo commentRepo;
     @Autowired
@@ -35,59 +33,47 @@ public class CommentService {
     private ReactService reactService;
     @Autowired
     private BlogRepo blogRepo;
+    @Autowired
+    private CommentFactory commentFactory;
+    @Autowired
+    private MediaLinkFactory mediaLinkFactory;
 
     public String addComment(Long blogId, Long parentId, Long user_to, String content, List<MultipartFile> files) throws IOException {
         Users userFrom = userService.getUser();
         Blog blog = blogRepo.findById(blogId).orElse(null);
-        if(blog==null) return "Blog not found";
-        if (userFrom == null) {
-            return "Log in to comment";
-        }
 
-        Comment comment = new Comment();
-        List<String> urls = new ArrayList<>();
+        if (blog == null) return "Blog not found";
+        if (userFrom == null) return "Log in to comment";
 
-        try {
-            urls = firebaseService.uploadFiles(files);
-        } catch (Exception e) {
-            urls = null; // Handle file upload failure
-        }
-        comment.setBlog(blog);
-        comment.setMedia(urls);
-        comment.setNumberOfChildComments(0);
-        comment.setCommentDate(System.currentTimeMillis());
-        comment.setReactCount(0L);
-        comment.setContent(content);
-        comment.setUserFrom(userFrom);
+        List<String> mediaUrls = mediaLinkFactory.uploadFirebase(files);
 
-        if(user_to!=null){
-            Users userTo = entityManager.getReference(Users.class, user_to);
-            comment.setUserTo(userTo);
-        }
-
+        Comment parentComment = null;
         if (parentId != null) {
-            Comment parentComment = commentRepo.findById(parentId).orElse(null);
-            comment.setParent(parentComment);
-            assert parentComment != null;
-            parentComment.setNumberOfChildComments(parentComment.getNumberOfChildComments()+1);
-            commentRepo.save(parentComment);
+            parentComment = processParrentComment(parentId);
         }
+
+        Users userTo = null;
+        if (user_to != null) {
+            userTo = entityManager.getReference(Users.class, user_to);
+        }
+
+        // Use the factory to create a new Comment object
+        Comment comment = commentFactory.createComment(blog, userFrom, userTo, parentComment, content, mediaUrls);
+
         commentRepo.save(comment);
-        blog.setNumberOfComments(blog.getNumberOfComments()+1);
+        blog.setNumberOfComments(blog.getNumberOfComments() + 1);
         blogRepo.save(blog);
+
         return "Comment added successfully";
     }
 
-
-    public Page<CommentDTO> getComment(int page, Long blogId) {
-        UserPrincipal userDetails = userService.getUserPrincipal();
-        Long userId = userDetails != null ? userDetails.getId() : null;
-        String sortAttribute = "id";
-        Sort sort = Sort.by(Sort.Order.desc(sortAttribute));
-
-        Pageable pageable = PageRequest.of(page, 10, sort);
-
-        return processComment(commentRepo.findComment(pageable,blogId), userId);
+    private Comment processParrentComment(Long id){
+        Comment parentComment = commentRepo.findById(id).orElse(null);
+        if (parentComment != null) {
+            parentComment.setNumberOfChildComments(parentComment.getNumberOfChildComments() + 1);
+            commentRepo.save(parentComment);
+        }
+        return parentComment;
     }
 
     private Page<CommentDTO> processComment(Page<CommentDTO> comments, Long userId) {
@@ -99,15 +85,29 @@ public class CommentService {
         return comments;
     }
 
+    private Page<CommentDTO> fetchAndProcessComments(Pageable pageable, Long blogId, Long parentId) {
+        Page<CommentDTO> comments;
+
+        if (parentId == null) {
+            comments = commentRepo.findComment(pageable, blogId);
+        } else {
+            comments = commentRepo.findReply(pageable, blogId, parentId);
+        }
+
+        Long userId = userService.getUserPrincipal() != null ? userService.getUserPrincipal().getId() : null;
+        return processComment(comments, userId);
+    }
+
+
+    public Page<CommentDTO> getComment(int page, Long blogId) {
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("id")));
+        return fetchAndProcessComments(pageable, blogId, null);
+    }
+
+
     public Page<CommentDTO> getReply(int page, Long blogId, Long parentId) {
-        UserPrincipal userDetails = userService.getUserPrincipal();
-        Long userId = userDetails != null ? userDetails.getId() : null;
-        String sortAttribute = "id";
-        Sort sort = Sort.by(Sort.Order.desc(sortAttribute));
-
-        Pageable pageable = PageRequest.of(page, 10, sort);
-
-        return processComment(commentRepo.findReply(pageable,blogId,parentId), userId);
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("id")));
+        return fetchAndProcessComments(pageable, blogId, parentId);
     }
 
     public String addReact(Long id, int type) {

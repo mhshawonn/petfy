@@ -102,12 +102,12 @@ public ResponseEntity<ApiResponse> addPet(
 
     @GetMapping("/save/{id}")
     public String SavePet(@PathVariable Long id){
-        return savedService.Save(id,0);
+        return savedService.save(id,0);
     }
 
     @GetMapping("/saved/{page}")
-    public Page<FeedDTO> savedPets(@PathVariable int page){
-        return savedService.getSavedPet(page,"id",0);
+    public Page<?> savedPets(@PathVariable int page,@RequestParam(required = false) int order){
+        return savedService.getSaved(0,page,"id",order);
     }
 
     @GetMapping("/myRequest/{page}")
