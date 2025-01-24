@@ -1,9 +1,12 @@
 package com.pet.Pet.Service;
 
+import com.pet.Pet.Model.Token;
+import com.pet.Pet.Repo.TokenRepo;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +21,8 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
+    @Autowired
+    private TokenRepo tokenRepo;
 
     private String secretKey = "";
 
@@ -34,7 +39,7 @@ public class JwtService {
 
     public String generateToken(String username) {
         Map<String,Object> claims = new HashMap<>();
-        return Jwts.builder()
+        String jwtValue = Jwts.builder()
                 .claims()
                 .add(claims)
                 .subject(username)
@@ -43,6 +48,14 @@ public class JwtService {
                 .and()
                 .signWith(getKey())
                 .compact();
+        Token token = tokenRepo.findByUsername(username);
+        if(token==null){
+            token = new Token();
+            token.setUsername(username);
+        }
+        token.setToken(jwtValue);
+        tokenRepo.save(token);
+        return jwtValue;
     }
 
 
@@ -67,6 +80,8 @@ public class JwtService {
 
     // Method to validate the token by comparing the username and checking if the token is expired
     public boolean validateToken(String token, UserDetails userDetails) {
+        Token token1 = tokenRepo.findByToken(token);
+        if (token1 == null) return false;
         final String userName = extractUsername(token);
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
@@ -84,5 +99,12 @@ public class JwtService {
     private SecretKey getKey() {
         byte[] keyByte = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyByte);
+    }
+
+    public String invokeToken(String username) {
+        Token token = tokenRepo.findByUsername(username);
+        token.setToken("");
+        tokenRepo.save(token);
+        return "Logout successful";
     }
 }

@@ -1,9 +1,6 @@
 package com.pet.Pet.Model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,8 +13,14 @@ public class Follow {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long follow_to;
-    private Long follow_from;
-    private String email_follow_from;
-    private boolean isFriend;
+    private int direction;
+    private Long followDate;
+
+    @ManyToOne
+    @JoinColumn(name = "user_to_id", referencedColumnName = "id")
+    private Users userTo;
+
+    @ManyToOne
+    @JoinColumn(name = "user_from_id", referencedColumnName = "id")
+    private Users userFrom;
 }

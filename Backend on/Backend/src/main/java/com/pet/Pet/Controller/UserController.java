@@ -95,6 +95,11 @@ public class UserController {
         return new LoginResponse(null,null);
     }
 
+    @GetMapping("/logout")
+    public String logout(){
+        return userService.Logout();
+    }
+
     @GetMapping("/reSentOtp/{email}")
     public ResponseEntity<?> profile(@PathVariable String email) throws Exception {
         Users user = userService.sendOtp(email);

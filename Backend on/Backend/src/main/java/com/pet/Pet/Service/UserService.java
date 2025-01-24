@@ -3,19 +3,16 @@ package com.pet.Pet.Service;
 import com.pet.Pet.DTO.UserDTO;
 import com.pet.Pet.Exceptions.UserException;
 import com.pet.Pet.Model.Address;
-import com.pet.Pet.Model.Pet;
 import com.pet.Pet.Model.UserPrincipal;
 import com.pet.Pet.Model.Users;
 import com.pet.Pet.Repo.AddressRepo;
 import com.pet.Pet.Repo.UsersRepo;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -203,4 +200,8 @@ public class UserService {
         return usersRepo.save(user);
     }
 
+    public String Logout() {
+        UserPrincipal userPrincipal = getUserPrincipal();
+        return jwtService.invokeToken(userPrincipal.getUsername());
+    }
 }

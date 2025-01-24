@@ -17,24 +17,8 @@ public class Token {
     private Long id;
 
     @Column(unique = true)
+    private String username;
+
+    @Column(unique = true)
     private String token;
-
-    @CreationTimestamp
-    @Column(updatable = false)
-    private Timestamp timeStamp;
-
-    @Column(updatable = false)
-    @Basic(optional = false)
-    private LocalDateTime expireAt;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private Users userToken;
-
-    @Transient
-    private boolean isExpired;
-
-    public boolean isExpired() {
-        return getExpireAt().isBefore(LocalDateTime.now());
-    }
 }
