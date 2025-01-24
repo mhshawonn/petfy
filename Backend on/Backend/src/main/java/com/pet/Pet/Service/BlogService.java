@@ -1,10 +1,12 @@
 package com.pet.Pet.Service;
 
+import com.pet.Pet.Component.BlogFactory;
+import com.pet.Pet.Component.MediaLinkFactory;
 import com.pet.Pet.DTO.ReactDTO;
+import com.pet.Pet.DTO.Result;
 import com.pet.Pet.Model.*;
 import com.pet.Pet.Repo.BlogRepo;
 import com.pet.Pet.Repo.TagRepo;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,57 +27,49 @@ public class BlogService {
     @Autowired
     private BlogRepo blogRepo;
     @Autowired
-    private FirebaseService firebaseService;
-    @Autowired
     private TagRepo tagRepo;
     @Autowired
     private ReactService reactService;
+    @Autowired
+    private BlogFactory blogFactory;
+    @Autowired
+    private MediaLinkFactory mediaLinkFactory;
 
-    public String createBlog(Blog blog,
-                             List<MultipartFile> files,
-                             List<Long> tags)
-            throws IOException {
+    public String createBlog(Blog blog, List<MultipartFile> files, List<Long> tags) throws IOException {
         Users user = userService.getUser();
         if (user == null) {
             return "Only logged in users can create a blog";
         }
 
-        List<String> urls = new ArrayList<String>();
-        try {
-            urls = firebaseService.uploadFiles(files);
-        } catch (Exception e) {
-          urls = null;
-        }
-        blog.setMedia(urls);
-        blog.setPublicationDate(System.currentTimeMillis());
-        blog.setLastUpdate(System.currentTimeMillis());
-        if(Objects.equals(user.getRole(), "ADMIN")) blog.setFeatured(true);
-        blog.setNumberOfReports(0L);
-        blog.setNumberOfComments(0L);
-        blog.setReactCount(0L);
-        List<Tags> tagsList = new ArrayList<>();
-        for(Long tagId: tags){
-            Tags tag = tagRepo.findById(tagId).orElse(null);
-            if(tag == null) continue;
-            tagsList.add(tag);
-        }
-        blog.setTags(tagsList);
+        List<String> urls = mediaLinkFactory.uploadFirebase(files);
+
+        List<Tags> tagsList = getTags(tags);
+
+        blog = blogFactory.configureBlog(blog, urls, Objects.equals(user.getRole(), "ADMIN"), tagsList);
+
         Blog savedBlog = blogRepo.save(blog);
-
-        System.out.println(savedBlog);
-
         return "Blog created successfully";
+    }
+
+    private List<Tags> getTags(List<Long> tags){
+        List<Tags> tagsList = new ArrayList<>();
+        for (Long tagId : tags) {
+            tagRepo.findById(tagId).ifPresent(tagsList::add);
+        }
+        return tagsList;
     }
 
     public Page<Blog> getBlogs(int page) {
         UserPrincipal userDetails = userService.getUserPrincipal();
         Long userId = userDetails != null ? userDetails.getId() : null;
-        String sortAttribute = "id";
-        Sort sort = Sort.by(Sort.Order.desc(sortAttribute));
 
-        Pageable pageable = PageRequest.of(page, 10, sort);
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("id")));
+        return fetchAndProcessBlogs(pageable, userId);
+    }
 
-        return processBlog(blogRepo.findAll(pageable), userId);
+    private Page<Blog> fetchAndProcessBlogs(Pageable pageable, Long userId) {
+        Page<Blog> blogs = blogRepo.findAll(pageable);
+        return processBlog(blogs, userId);
     }
 
     public Page<Blog> processBlog(Page<Blog> blogs, Long userId) {

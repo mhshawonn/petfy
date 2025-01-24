@@ -1,14 +1,15 @@
 package com.pet.Pet.Service;
 
+import com.pet.Pet.Builder.ReactBuilder;
+import com.pet.Pet.Component.ReactStrategy;
+import com.pet.Pet.Component.ReactStrategyFactory;
 import com.pet.Pet.DTO.ReactDTO;
 import com.pet.Pet.Model.*;
 import com.pet.Pet.Repo.*;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ReactService {
@@ -19,52 +20,35 @@ public class ReactService {
     @Autowired
     private UsersRepo usersRepo;
     @Autowired
-    private PetRepo petRepo;
+    private ReactBuilder reactBuilder;
     @Autowired
-    private BlogRepo blogRepo;
-    @Autowired
-    private CommentRepo commentRepo;
+    private ReactStrategyFactory reactStrategyFactory;
 
-    public String addReact(Long id, int postType, int type,Boolean isSaved) {
+    public String addReact(Long id, int postType, int type, Boolean isSaved) {
         UserPrincipal userPrincipal = userService.getUserPrincipal();
-        React react = reactRepo.findReact(id,postType,userPrincipal.getId(),isSaved);
-        if (react == null) {
-            react = new React();
-            react.setPostId(id);
-            react.setPostType(postType);
-            react.setUser(usersRepo.findById(userPrincipal.getId()).orElse(null));
-            react.setReactType(type);
-            react.setTimestamp(System.currentTimeMillis());
-            react.setSaved(isSaved);
-            reactRepo.save(react);
-            processReact(id,postType);
-            return "Reacted successfully";
-        }
-        else{
-            react.setReactType(type);
-            react.setTimestamp(System.currentTimeMillis());
-            reactRepo.save(react);
-            return "React updated successfully";
-        }
-    }
+        React existingReact = reactRepo.findReact(id, postType, userPrincipal.getId(), isSaved);
 
-    public void processReact(Long id,int postType){
-        if(postType==0){
-            Pet pet = petRepo.findById(id).orElse(null);
-            assert pet != null;
-            pet.setReactCount(pet.getReactCount()+1);
-            petRepo.save(pet);
-        }
-        else if(postType==1){
-            Blog blog = blogRepo.findById(id).orElse(null);
-            assert blog != null;
-            blog.setReactCount(blog.getReactCount()+1);
-            blogRepo.save(blog);
-        } else if (postType==2) {
-            Comment comment = commentRepo.findById(id).orElse(null);
-            assert comment!= null;
-            comment.setReactCount(comment.getReactCount()+1);
-            commentRepo.save(comment);
+        if (existingReact == null) {
+            React newReact = reactBuilder
+                    .withPostId(id)
+                    .withPostType(postType)
+                    .withUser(usersRepo.findById(userPrincipal.getId()).orElse(null))
+                    .withReactType(type)
+                    .withReactTime(System.currentTimeMillis())
+                    .withSaved(isSaved)
+                    .build();
+
+            reactRepo.save(newReact);
+
+            ReactStrategy strategy = reactStrategyFactory.getStrategy(postType);
+            strategy.processReact(id);
+
+            return "Reacted successfully";
+        } else {
+            existingReact.setReactType(type);
+            existingReact.setTimestamp(System.currentTimeMillis());
+            reactRepo.save(existingReact);
+            return "React updated successfully";
         }
     }
 

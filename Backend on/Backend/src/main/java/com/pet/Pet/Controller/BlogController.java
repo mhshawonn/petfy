@@ -3,6 +3,7 @@ package com.pet.Pet.Controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pet.Pet.DTO.CommentDTO;
 import com.pet.Pet.DTO.ReactDTO;
+import com.pet.Pet.DTO.Result;
 import com.pet.Pet.Model.Blog;
 import com.pet.Pet.Service.BlogService;
 import com.pet.Pet.Service.CommentService;
@@ -30,11 +31,8 @@ public class BlogController {
 
     @PostMapping("/create")
     public String createBlog(@RequestPart("blog") String blogJson, @RequestPart("files") List<MultipartFile> files,
-                             @RequestParam(required = false) List<Long> tag,
-                             @RequestParam("userId") Long userId) throws IOException {
-
-
-
+                                   @RequestParam(required = false) List<Long> tag,
+                                   @RequestParam("userId") Long userId) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         Blog blog = mapper.readValue(blogJson, Blog.class);
         System.out.println(blog);
@@ -97,12 +95,12 @@ public class BlogController {
 
     @GetMapping("/save/{id}")
     public String SaveBlog(@PathVariable Long id){
-        return savedService.Save(id,1);
+        return savedService.save(id,1);
     }
 
     @GetMapping("/saved/{page}")
-    public Page<Blog> getSavedBlog(@PathVariable int page){
-        return savedService.getSavedBlogs(page);
+    public Page<?> getSavedBlog(@PathVariable int page,@RequestParam(required = false) int order){
+        return savedService.getSaved(0,page,"id",order);
     }
 }
 

@@ -1,10 +1,12 @@
 package com.pet.Pet.Service;
 
+import com.pet.Pet.Component.MediaLinkFactory;
+import com.pet.Pet.Component.PetFactory;
+import com.pet.Pet.Component.SortingStrategy;
 import com.pet.Pet.DTO.FeedDTO;
 import com.pet.Pet.DTO.ReactDTO;
 import com.pet.Pet.Model.*;
 import com.pet.Pet.Repo.*;
-import jakarta.mail.Multipart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,8 +24,6 @@ import java.util.Optional;
 @Service
 public class PetService {
     @Autowired
-    private FirebaseService firebaseService;
-    @Autowired
     private AnimalRepo animalRepo;
     @Autowired
     private CategoryRepo categoryRepo;
@@ -39,46 +39,46 @@ public class PetService {
     private AdoptionRepo adoptRepo;
     @Autowired
     private ReactService reactService;
+    @Autowired
+    private PetFactory petFactory;
+    @Autowired
+    private MediaLinkFactory mediaLinkFactory;
+    @Autowired
+    private SortingStrategy sortingStrategy;
 
     public String addPet(Pet pet, List<MultipartFile> multipartFiles, Long animalId, List<Long> categoryIds, Long addressId) throws IOException {
-//        UserPrincipal userDetails = userService.getUserPrincipal();
-//        if(userDetails == null) return "User not Authenticated";
-        Users user = usersRepo.findById(1);
-        pet.setOwner(user);
-        pet.setAddress((addressId != null ? addressRepo.findById(addressId).orElse(null) : user.getAddress()));
+        Users user = userService.getUser();
+        Address address = (addressId != null) ? addressRepo.findById(addressId).orElse(null) : user.getAddress();
 
-        if(categoryIds!=null){
-            if (pet.getCategories() == null) {
-                pet.setCategories(new ArrayList<>());
-            }
+        List<Category> categories = getCategory(categoryIds);
 
-            for (Long categoryId : categoryIds) {
-                Category category = (Category) categoryRepo.findById(categoryId).orElse(null);
-                if (category == null) continue;
-                pet.getCategories().add(category);
-            }
-        }
+        List<String> urls = mediaLinkFactory.uploadFirebase(multipartFiles);
 
-        List<String> urls = firebaseService.uploadFiles(multipartFiles);
         Animal animal = animalRepo.findById(animalId).orElseThrow(() -> new RuntimeException("Animal not found"));
-        pet.setAnimal(animal);
-        pet.setMedia(urls);
-        pet.setTimeStamp(System.currentTimeMillis());
-        pet.setReportCount(0L);
-        pet.setNumberOfRequests(0L);
-        pet.setStatus("Available");
+
+        pet = petFactory.createPet(pet, user, address, urls, animal, categories);
+
         petRepo.save(pet);
+
         return "Pet added successfully";
     }
 
-    public Page<FeedDTO> getAllPets(int page, String sortAttribute, int order) {
-        UserPrincipal userDetails = userService.getUserPrincipal();
-        Long userId = userDetails != null ? userDetails.getId() : null;
-        if (sortAttribute == null) {
-            sortAttribute = "id";
+    private List<Category> getCategory(List<Long> categoryIds){
+        List<Category> categories = new ArrayList<>();
+        if (categoryIds != null) {
+            for (Long categoryId : categoryIds) {
+                categoryRepo.findById(categoryId).ifPresent(categories::add);
+            }
         }
-        Sort sort = (order == 0) ? Sort.by(Sort.Order.desc(sortAttribute)) : Sort.by(Sort.Order.asc(sortAttribute));
+        return categories;
+    }
+
+    public Page<FeedDTO> getAllPets(int page, String sortAttribute, int order) {
+        Sort sort = sortingStrategy.getSort(sortAttribute, order);
         Pageable pageable = PageRequest.of(page, 10, sort);
+        UserPrincipal userDetails = userService.getUserPrincipal();
+        Long userId = (userDetails != null) ? userDetails.getId() : null;
+
         return processPets(petRepo.findAllPet(pageable), userId);
     }
 
@@ -96,17 +96,19 @@ public class PetService {
     }
 
     public String requestPet(Long id, AdoptionRequest adoptionRequest, List<MultipartFile> files) throws IOException {
-        UserPrincipal userDetails = userService.getUserPrincipal();
-        if(userDetails == null) return "User not Authenticated";
-        Users user = usersRepo.findByUsername(userDetails.getUsername());
+        Users user = userService.getUser();
+        if(user == null) return "User not Authenticated";
+
         Pet pet = petRepo.findById(id).orElseThrow(() -> new RuntimeException("Pet not found"));
-        pet.setNumberOfRequests(Optional.ofNullable(pet.getNumberOfRequests()).orElse(0L) + 1);
+        List<String> urls = mediaLinkFactory.uploadFirebase(files);
+
         adoptionRequest.setPet(pet);
         adoptionRequest.setRequestUsers(user);
-        List<String> urls = firebaseService.uploadFiles(files);
         adoptionRequest.setCertificates(urls);
-        petRepo.save(pet);
+        pet.setNumberOfRequests(Optional.ofNullable(pet.getNumberOfRequests()).orElse(0L) + 1);
+
         adoptRepo.save(adoptionRequest);
+        petRepo.save(pet);
         return "Request sent successfully";
     }
 
@@ -114,19 +116,22 @@ public class PetService {
         UserPrincipal userPrincipal = userService.getUserPrincipal();
         if(userPrincipal == null) return "User not Authenticated";
         Long userId = adoptRepo.findPetOwnerIdByAdoptionRequestId(id);
+
         AdoptionRequest adoptRequest = adoptRepo.findById(id).orElseThrow(() -> new RuntimeException("Adoption Request not found"));
         if(!Objects.equals(userId, userPrincipal.getId())) return adoptRequest.getStatus();
+
         adoptRequest.setStatus("Approved");
         adoptRepo.save(adoptRequest);
+
         Pet pet = adoptRequest.getPet();
         pet.setStatus("Adopted");
         petRepo.save(pet);
+
         return "Status updated successfully";
     }
 
     public Page<AdoptionRequest> getAdoptionRequest(Long petId, int page, int order) {
-        String sortAttribute = "id";
-        Sort sort = (order == 0) ? Sort.by(Sort.Order.asc(sortAttribute)) : Sort.by(Sort.Order.desc(sortAttribute));
+        Sort sort = sortingStrategy.getSort("id",1);
         Pageable pageable = PageRequest.of(page, 10, sort);
         return adoptRepo.findAllByPetId(pageable, petId);
     }
@@ -134,8 +139,7 @@ public class PetService {
     public Page<AdoptionRequest> getMyRequest(int page, int order) {
         Users users = userService.getUser();
         if(users==null) return null;
-        String sortAttribute = "id";
-        Sort sort = (order == 0) ? Sort.by(Sort.Order.asc(sortAttribute)) : Sort.by(Sort.Order.desc(sortAttribute));
+        Sort sort = sortingStrategy.getSort("id",1);
         Pageable pageable = PageRequest.of(page, 10, sort);
         return adoptRepo.findMyRequests(pageable,users.getId());
     }

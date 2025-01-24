@@ -3,6 +3,7 @@ package com.pet.Pet.Controller;
 import com.pet.Pet.DTO.UserDTO;
 import com.pet.Pet.Model.FollowSummary;
 import com.pet.Pet.Service.ConnectionService;
+import com.pet.Pet.Service.ConnectionSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,15 +15,17 @@ import java.util.List;
 public class ConnectionController {
     @Autowired
     private ConnectionService connectionService;
+    @Autowired
+    private ConnectionSummary connectionSummary;
 
     @GetMapping("/get")
     public FollowSummary getSummary(){
-        return connectionService.getSummary();
+        return connectionSummary.getSummary();
     }
 
     @GetMapping("/getUser")
     public FollowSummary getSummary(@RequestParam Long id){
-        return connectionService.getSummaryOfUser(id);
+        return connectionSummary.getSummaryOfUser(id);
     }
 
     @GetMapping("/follow")
