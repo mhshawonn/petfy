@@ -47,8 +47,8 @@ public class SecuirityConfig {
                                     "pet/getPet/**","/user/Profile/**","/**","/animal/getAnimal",
                                     "/animal/getCategory/**","/address/get","/address/getByCity","/pet/add/**","/user/profilePic","/user/updateBio","/user/updateBio","/pet/giveReact",
                                     "/pet/getReact/**","blog/giveReact/**","/blog/showReact",
-                                    "/blog/showReactByReact","/blog//addComment","blog//getComment/**",
-                                    "blog//getReply/**","blog/reactComment","blog//getReactComment"
+                                    "/blog/showReactByReact","/blog/addComment","blog/getComment/**",
+                                    "blog//getReply/**","blog/reactComment","blog/getReactComment"
                                     )
                             .permitAll()
                             .anyRequest().authenticated())

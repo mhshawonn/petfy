@@ -39,7 +39,7 @@ public Result<Pet> addPet(
     try {
         ObjectMapper mapper = new ObjectMapper();
         Pet pet = mapper.readValue(petJson, Pet.class);
-
+        System.out.println(files);
         String result = petService.addPet(pet, files, animal_id, category_ids, address_id);
         return new Result<>(true,"Pet added successfully",null);
     } catch (IOException e) {
