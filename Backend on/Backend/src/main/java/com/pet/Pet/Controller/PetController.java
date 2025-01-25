@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pet.Pet.DTO.AdoptionDTO;
 import com.pet.Pet.DTO.FeedDTO;
 import com.pet.Pet.DTO.ReactDTO;
+import com.pet.Pet.DTO.Result;
 import com.pet.Pet.Model.AdoptionRequest;
 import com.pet.Pet.Model.Pet;
 import com.pet.Pet.Service.PetService;
@@ -28,18 +29,8 @@ public class PetController {
     private SavedService savedService;
 
 
-//    @PostMapping(value = "/add")
-//    public String add(@RequestPart Pet pet,
-//                      @RequestPart List<MultipartFile> files,
-//                      @RequestParam(required = true) Long animal_id,
-//                      @RequestParam(required = false, defaultValue = "") List<Long> category_ids,
-//                      @RequestParam(required = false) Long address_id) throws IOException {
-//
-//        System.out.println("hello ");
-//        return petService.addPet(pet,files,animal_id,category_ids,address_id);
-//    }
 @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-public ResponseEntity<ApiResponse> addPet(
+public Result<Pet> addPet(
         @RequestPart(value = "pet") String petJson,
         @RequestPart(value = "multipartFiles") List<MultipartFile> files,
         @RequestParam Long animal_id,
@@ -50,19 +41,18 @@ public ResponseEntity<ApiResponse> addPet(
         Pet pet = mapper.readValue(petJson, Pet.class);
 
         String result = petService.addPet(pet, files, animal_id, category_ids, address_id);
-        return ResponseEntity.ok(new ApiResponse());
+        return new Result<>(true,"Pet added successfully",null);
     } catch (IOException e) {
-        return ResponseEntity.badRequest()
-                .body(new ApiResponse());
+        return new Result<>(false,"Some thing error happen",null);
     }
 }
 
     @GetMapping("/get/{page}")
     public Page<FeedDTO> getPets(@PathVariable int page, @RequestParam(required = false) String sort,
-                                 @RequestParam(required = false) int order){
+                                 @RequestParam(defaultValue = "0", required = false) int order){
         Page<FeedDTO> feedDTOS =  petService.getAllPets(page,sort,order);
 
-        System.out.printf("feedDTOS : " + feedDTOS);
+        System.out.println(feedDTOS);
 
         return feedDTOS;
     }
@@ -106,7 +96,7 @@ public ResponseEntity<ApiResponse> addPet(
     }
 
     @GetMapping("/saved/{page}")
-    public Page<?> savedPets(@PathVariable int page,@RequestParam(required = false) int order){
+    public Page<?> savedPets(@PathVariable int page, @RequestParam(defaultValue = "0") int order){
         return savedService.getSaved(0,page,"id",order);
     }
 

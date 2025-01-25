@@ -31,11 +31,9 @@ public class BlogController {
 
     @PostMapping("/create")
     public String createBlog(@RequestPart("blog") String blogJson, @RequestPart("files") List<MultipartFile> files,
-                                   @RequestParam(required = false) List<Long> tag,
-                                   @RequestParam("userId") Long userId) throws IOException {
+                                   @RequestParam(required = false) List<Long> tag) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         Blog blog = mapper.readValue(blogJson, Blog.class);
-        System.out.println(blog);
         return blogService.createBlog(blog,files,tag);
     }
 

@@ -9,7 +9,7 @@ public class SavedBuilder {
     private final Saved saved;
 
     public SavedBuilder() {
-        this.saved = new Saved();
+        saved = new Saved();
     }
 
     public SavedBuilder withPostType(int postType) {
