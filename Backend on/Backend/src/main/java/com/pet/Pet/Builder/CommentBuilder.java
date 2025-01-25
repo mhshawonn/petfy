@@ -7,7 +7,7 @@ import com.pet.Pet.Model.Users;
 import java.util.List;
 
 public class CommentBuilder {
-    private Comment comment;
+    private final Comment comment;
 
     public CommentBuilder() {
         comment = new Comment();

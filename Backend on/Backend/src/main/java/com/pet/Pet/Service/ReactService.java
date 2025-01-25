@@ -24,28 +24,21 @@ public class ReactService {
     @Autowired
     private ReactStrategyFactory reactStrategyFactory;
 
-    public String addReact(Long id, int postType, int type, Boolean isSaved) {
-        UserPrincipal userPrincipal = userService.getUserPrincipal();
-        React existingReact = reactRepo.findReact(id, postType, userPrincipal.getId(), isSaved);
+    public String addReact(Long postid, int postType, int reactType, Boolean isSaved) {
+        Users user = userService.getUser();
+        React existingReact = reactRepo.findReact(postid, postType, user.getId(), isSaved);
 
         if (existingReact == null) {
-            React newReact = reactBuilder
-                    .withPostId(id)
-                    .withPostType(postType)
-                    .withUser(usersRepo.findById(userPrincipal.getId()).orElse(null))
-                    .withReactType(type)
-                    .withReactTime(System.currentTimeMillis())
-                    .withSaved(isSaved)
-                    .build();
+            React newReact = reactStrategyFactory.createReact(postid,postType,reactType,isSaved,user);
 
             reactRepo.save(newReact);
 
             ReactStrategy strategy = reactStrategyFactory.getStrategy(postType);
-            strategy.processReact(id);
+            strategy.processReact(postid);
 
             return "Reacted successfully";
         } else {
-            existingReact.setReactType(type);
+            existingReact.setReactType(reactType);
             existingReact.setTimestamp(System.currentTimeMillis());
             reactRepo.save(existingReact);
             return "React updated successfully";

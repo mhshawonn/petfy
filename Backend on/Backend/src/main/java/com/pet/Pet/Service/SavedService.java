@@ -27,15 +27,13 @@ public class SavedService {
             return "Already saved";
         }
 
-        Saved saved = savedBuilder
-                .withPostType(postType)
-                .withPostId(id)
-                .withUser(users)
-                .build();
+        Saved saved = new Saved();
+        saved.setUser(users);
+        saved.setPostType(postType);
+        saved.setPostId(id);
 
         SaveStrategy strategy = saveStrategyFactory.getStrategy(postType);
         strategy.processSave(saved);
-
         savedRepo.save(saved);
         return "Saved successfully";
     }

@@ -45,7 +45,7 @@ public class BlogService {
 
         List<Tags> tagsList = getTags(tags);
 
-        blog = blogFactory.configureBlog(blog, urls, Objects.equals(user.getRole(), "ADMIN"), tagsList);
+        blog = blogFactory.configureBlog(blog, urls, Objects.equals(user.getRole(), "ADMIN"), tagsList,user);
 
         Blog savedBlog = blogRepo.save(blog);
         return "Blog created successfully";
@@ -53,6 +53,7 @@ public class BlogService {
 
     private List<Tags> getTags(List<Long> tags){
         List<Tags> tagsList = new ArrayList<>();
+        if(tags==null) return tagsList;
         for (Long tagId : tags) {
             tagRepo.findById(tagId).ifPresent(tagsList::add);
         }
