@@ -1,5 +1,6 @@
 package com.pet.Pet.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pet.Pet.Component.MediaLinkFactory;
 import com.pet.Pet.Component.PetFactory;
 import com.pet.Pet.Component.SortingStrategy;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.DataInput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +103,6 @@ public class PetService {
 
         Pet pet = petRepo.findById(id).orElseThrow(() -> new RuntimeException("Pet not found"));
         List<String> urls = mediaLinkFactory.uploadFirebase(files);
-
         adoptionRequest.setPet(pet);
         adoptionRequest.setRequestUsers(user);
         adoptionRequest.setCertificates(urls);

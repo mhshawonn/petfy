@@ -19,7 +19,7 @@ public interface CommentRepo extends JpaRepository<Comment,Long> {
             "FROM Comment c " +
             "LEFT JOIN c.userFrom uFrom " +
             "LEFT JOIN c.userTo uTo " +
-            "WHERE c.blog.id = :blogId")
+            "WHERE c.blog.id = :blogId AND c.parent.id IS NULL")
     Page<CommentDTO> findComment(Pageable pageable, @Param("blogId") Long blogId);
 
     @Query("SELECT new com.pet.Pet.DTO.CommentDTO( " +
