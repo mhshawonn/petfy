@@ -11,7 +11,7 @@ import AOS from "aos";
 
 import React from "react";
 import Fab from "@mui/material/Fab";
-import ChatModal from "./Modals/ChatModal";
+
 
 const App = () => {
   // Add empty dependency array here
@@ -42,7 +42,7 @@ const App = () => {
         <Service />
         <Card />
         <Card2 />
-        <Footer />
+        {/* <Footer /> */}
       </div>
       
     </Fragment>

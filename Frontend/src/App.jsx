@@ -7,6 +7,7 @@ import AOS from "aos";
 import "aos/dist/aos.css"
 import React from "react";
 import { Outlet } from "react-router-dom";
+import ChatWidget from "./ChatBot/ChatWidget";
 
 
 
@@ -21,10 +22,12 @@ const App = () => {
     <div className="relative z-10 pt-16">
     <Outlet></Outlet>
     </div>
-    <div  className="relative ">
+    <div  className="relative z-10">
+
 
 <Footer ></Footer>
     </div>
+    <ChatWidget/>
     
     </Fragment>
   );

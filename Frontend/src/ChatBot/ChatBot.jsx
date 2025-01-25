@@ -2,18 +2,18 @@ import React, { useState } from "react";
 import ChatMessage from "./ChatMessage";
 import { useEffect } from "react";
 import axios from "axios";
-
+import { IoClose } from "react-icons/io5";
 const BASE_API_URL = "http://localhost:8080";
 
 const GEMINI_API_KEY = "AIzaSyCs8wGT0QYDduQR1hb3vJHZ7MiByI5GQA4";
 const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
-const ChatBot = () => {
+const ChatBot = ({onClose}) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-
   const token = localStorage.getItem("authToken");
+  
 
   const fetchMessages = async () => {
     try {
@@ -113,64 +113,72 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-100 flex flex-col">
-      {/* Chat Window */}
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="w-full max-w-4xl flex flex-col h-screen bg-white shadow-lg">
-          {/* Header */}
-          <div className="p-4 bg-gray-800 text-white text-center font-bold">
-            ChatGPT Clone
-          </div>
+    <div className="w-full h-full flex flex-col bg-white shadow-lg">
+    {/* Header */}
+    <div className="p-4 bg-gray-800 text-white flex justify-between items-center">
+      <div className="flex items-center space-x-2">
+        <img
+          src="/path-to-avatar.jpg"
+          alt="Support"
+          className="w-8 h-8 rounded-full"
+        />
+        <span className="font-bold">Support</span>
+      </div>
+      <button
+        onClick={onClose}
+        className="text-white hover:text-gray-300"
+      >
+        <IoClose size={24} />
+      </button>
+    </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-            {messages?.length === 0 ? (
-              <p className="text-center text-gray-400">
-                Start a conversation...
-              </p>
-            ) : (
-              messages?.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex mb-4 ${
-                    msg?.sentFrom === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={`max-w-xs rounded-lg p-3 shadow ${
-                      msg?.sentFrom === "user"
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-300 text-black"
-                    }`}
-                  >
-                    {msg?.message}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Input Section */}
-          <div className="p-4 border-t bg-white">
-            <div className="flex items-center space-x-4">
-              <input
-                type="text"
-                className="flex-1 p-3 border rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Type your message..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
-              <button
-                onClick={sendMessage}
-                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-400"
-              >
-                Send
-              </button>
+    {/* Messages Area */}
+    <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      {messages?.length === 0 ? (
+        <p className="text-center text-gray-400">
+          Start a conversation...
+        </p>
+      ) : (
+        messages?.map((msg, idx) => (
+          <div
+            key={idx}
+            className={`flex mb-4 ${
+              msg?.sentFrom === "user" ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div
+              className={`max-w-xs rounded-lg p-3 shadow ${
+                msg?.sentFrom === "user"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-300 text-black"
+              }`}
+            >
+              {msg?.message}
             </div>
           </div>
-        </div>
+        ))
+      )}
+    </div>
+
+    {/* Input Section */}
+    <div className="p-4 border-t bg-white">
+      <div className="flex items-center space-x-4">
+        <input
+          type="text"
+          className="flex-1 p-3 border rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Type your message..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+        <button
+          onClick={sendMessage}
+          className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-400"
+        >
+          Send
+        </button>
       </div>
     </div>
+  </div>
   );
 };
 

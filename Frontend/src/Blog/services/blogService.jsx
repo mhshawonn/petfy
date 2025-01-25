@@ -2,6 +2,7 @@ import axios from "axios";
 
 const API_URL = "http://localhost:8080/blog";
 
+
 export const blogService = {
   getBlogs: async (page = 0, userId) => {
     try {
@@ -11,6 +12,19 @@ export const blogService = {
       return response.data;
     } catch (error) {
       throw new Error("Failed to fetch blogs");
+    }
+  },
+
+  getBlogById: async (blogId) => {
+    try {
+      const response = await axios.get(`${API_URL}/get/${blogId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      })
+      return response.data
+    } catch (error) {
+      throw new Error("Failed to fetch blog")
     }
   },
 
@@ -80,54 +94,80 @@ export const blogService = {
     }
   },
 
-  // Fetch comments for a specific blog
   getComments: async (blogId, page = 0) => {
     try {
-      const response = await axios.get(`${API_URL}/comments/getComment/${page}`, {
+      const response = await axios.get(`${API_URL}/getComment/${page}`, {
         params: { blog_id: blogId },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
-      });
-      return response.data; // assuming the response contains 'content' for comments
+      })
+      return response.data
     } catch (error) {
-      throw new Error("Failed to fetch comments");
+      throw new Error("Failed to fetch comments")
     }
   },
 
-  // Add a new comment to a specific blog
-  addComment: async (blogId, content) => {
+  getReplies: async (blogId, parentId, page = 0) => {
     try {
-      const response = await axios.post(
-        `${API_URL}/comments/addComment`,
-        {
-          blog_id: blogId,
-          content: content,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        }
-      );
-      return response.data; // assuming the response contains the created comment or success message
-    } catch (error) {
-      throw new Error("Failed to add comment");
-    }
-  },
-
-  // React to a comment (like/dislike)
-  reactComment: async (commentId, type) => {
-    try {
-      const response = await axios.get(`${API_URL}/comments/reactComment`, {
-        params: { id: commentId, type: type },
+      const response = await axios.get(`${API_URL}/getReply/${page}`, {
+        params: { blog_id: blogId, parent_id: parentId },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
       });
-      return response.data; // assuming the response contains a success message
+      return response.data;
     } catch (error) {
-      throw new Error("Failed to react to comment");
+      throw new Error("Failed to fetch replies");
+    }
+  },
+
+  addComment: async (blogId, content, parentId = null) => {
+    try {
+      const formData = new FormData()
+      formData.append("blog_id", blogId)
+      formData.append("content", content)
+      if (parentId) {
+        formData.append("parent_id", parentId)
+      }
+
+      const response = await axios.post(`${API_URL}/addComment`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      })
+      return response.data
+    } catch (error) {
+      throw new Error("Failed to add comment")
+    }
+  },
+
+  reactToComment: async (commentId, type) => {
+    try {
+      const response = await axios.get(`${API_URL}/reactComment`, {
+        params: { id: commentId, type },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      })
+      return response.data
+    } catch (error) {
+      throw new Error("Failed to react to comment")
+    }
+  },
+
+  getCommentReactions: async (commentId) => {
+    try {
+      const response = await axios.get(`${API_URL}/getReactComment`, {
+        params: { id: commentId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      })
+      return response.data
+    } catch (error) {
+      throw new Error("Failed to get comment reactions")
     }
   },
 };

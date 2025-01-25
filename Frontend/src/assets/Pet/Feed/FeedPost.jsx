@@ -17,7 +17,7 @@ const FeedPost = () => {
       const response = await axios.get(`http://localhost:8080/pet/get/${page}?order=0`);
       const newPosts = response.data.content;
       console.log("res")
-      console.log(response.data?.content[0]?.media[0])
+      console.log(response.data?.content[0])
 
       // setPosts((prevPosts) => [...prevPosts, ...newPosts]); 
       // Filter out any duplicate posts based on a unique identifier (e.g., post.id)
@@ -60,31 +60,40 @@ const FeedPost = () => {
 
   return (
     <>
-      <div className="max-w-2xl mx-auto p-4">
-        <PostHeader />
-      </div>
-
-      <div className="max-w-2xl mx-auto p-4">
-        {posts.length > 0 ? (
-          posts.map((post, index) => (
-            <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden mb-4">
-              <div className="p-4">
-                {post?.media && <img src={post.media[0]} alt={post?.name} className="w-full h-auto rounded-lg" />}
-              </div>
-              <div className="p-4">
-                <p>{post.description}</p>
-              </div>
-              <PostFooter />
+    <div className="max-w-2xl mx-auto p-4">
+      {posts.length > 0 ? (
+        posts.map((post) => (
+          <div
+            key={post.id}
+            className="bg-white shadow-md rounded-lg overflow-hidden mb-4"
+          >
+            <PostHeader 
+              profile={post?.media?.[0]}
+              username={post?.ownerName}
+            />
+            <div className="p-4">
+              {post?.media && (
+                <img
+                  src={post.media[0]}
+                  alt={post?.name}
+                  className="w-full h-auto rounded-lg"
+                />
+              )}
             </div>
-          ))
-        ) : (
-          <p>Loading posts...</p>
-        )}
-      </div>
+            <div className="p-4">
+              <p>{post.description}</p>
+            </div>
+            <PostFooter postId={post.id} />
+          </div>
+        ))
+      ) : (
+        <p>Loading posts...</p>
+      )}
+    </div>
 
-      {loading && <div className="text-center p-4">Loading more posts...</div>}
-      {!hasMore && <div className="text-center p-4">No more posts to load</div>}
-    </>
+    {loading && <div className="text-center p-4">Loading more posts...</div>}
+    {!hasMore && <div className="text-center p-4">No more posts to load</div>}
+  </>
   );
 };
 

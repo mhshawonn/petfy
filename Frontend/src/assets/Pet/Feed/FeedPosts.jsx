@@ -15,7 +15,7 @@ export default function FeedPosts() {
 
         <div>
           {/* Floating Message Icon in the bottom-left corner */}
-          <div className="fixed bottom-5 left-5 z-50">
+          <div className="fixed bottom-5 left-5 z-60">
             <button
               onClick={() => setIsOpenChatModal(true)}
               className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none"
@@ -31,7 +31,7 @@ export default function FeedPosts() {
           />
         </div>
 
-        <FeedPost /> {/* You can pass children or props to FeedPost if necessary */}
+        <FeedPost />
       </div>
     </>
   );
