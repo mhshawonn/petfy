@@ -53,7 +53,7 @@ const router = createBrowserRouter([
         element: <ChatPage />,
       },
       {
-        path: "/blog",
+        path: "/blog/*",
         element: <BlogPage />,
       },
       {

@@ -78,6 +78,11 @@ export default function Navbar() {
                   Donate
                 </Link>
               </li>
+              {/* <li>
+                <Link to="/chat" className="hover:text-white transition-colors">
+                  Message
+                </Link>
+              </li> */}
 
               {/* Login Button */}
               <div
@@ -127,6 +132,9 @@ export default function Navbar() {
               </li>
               <li className="px-4 py-2 hover:bg-pink-500 transition-colors">
                 <Link to="/donate" className="block">Donate</Link>
+              </li>
+              <li className="px-4 py-2 hover:bg-pink-500 transition-colors">
+                <Link to="/chat" className="block">Message</Link>
               </li>
             </ul>
           </div>
