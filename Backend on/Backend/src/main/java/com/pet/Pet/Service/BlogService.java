@@ -60,6 +60,10 @@ public class BlogService {
         return tagsList;
     }
 
+    public List<Blog> getBlogsNotApproved() {
+        return blogRepo.getBlogsNotApproved();
+    }
+
     public Page<Blog> getBlogs(int page) {
         UserPrincipal userDetails = userService.getUserPrincipal();
         Long userId = userDetails != null ? userDetails.getId() : null;
@@ -93,5 +97,37 @@ public class BlogService {
 
     public List<ReactDTO> getReactType(Long id, int postType, int reactType) {
         return reactService.getReactByPostIdAndPostTypeAndReactType(id,postType,reactType);
+    }
+
+    public String approveBlog(Long id) {
+        Blog blog = blogRepo.findById(id).orElse(null);
+        if (blog == null) {
+            return "Blog not found";
+        }
+        blog.setApproved(true);
+        blog.setBanned(false);
+        blogRepo.save(blog);
+        return "Blog approved successfully";
+    }
+
+    public String banBlog(Long id) {
+        Blog blog = blogRepo.findById(id).orElse(null);
+        if (blog == null) {
+            return "Blog not found";
+        }
+        blog.setBanned(true);
+        blog.setApproved(true);
+        blogRepo.save(blog);
+        return "Blog banned successfully";
+    }
+
+    public String unbanBlog(Long id) {
+        Blog blog = blogRepo.findById(id).orElse(null);
+        if (blog == null) {
+            return "Blog not found";
+        }
+        blog.setBanned(false);
+        blogRepo.save(blog);
+        return "Blog unbanned successfully";
     }
 }

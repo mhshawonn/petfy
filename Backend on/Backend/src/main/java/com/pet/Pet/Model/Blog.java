@@ -25,6 +25,7 @@ public class Blog {
     private Long publicationDate;
     @OrderBy("lastUpdate DESC")
     private Long lastUpdate;
+    private boolean isApproved; //added by faiak
     private boolean featured;
     private List<String> media;
     private Long numberOfReports;

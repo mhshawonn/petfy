@@ -17,6 +17,7 @@ import BlogPage from "./Blog/pages/BlogPage";
 import DonationPage from "./Donation/DonationPage";
 import Donate from "./Donation/donate/Donate";
 import ChatBot from "./ChatBot/ChatBot";
+import AdminPage from "./Admin/AdminPage";
 
 const router = createBrowserRouter([
   {
@@ -68,6 +69,10 @@ const router = createBrowserRouter([
         path: "/chatbot",
         element: <ChatBot />,
       },
+      {
+        path: "admin",
+        element: <AdminPage />,
+      }
     ],
   },
 ]);
