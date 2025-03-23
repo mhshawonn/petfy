@@ -37,6 +37,26 @@ public class BlogController {
         return blogService.createBlog(blog,files,tag);
     }
 
+    @GetMapping("/get/NotApproved")
+    public List<Blog> getNotApproved(){
+        return blogService.getBlogsNotApproved();
+    }
+
+    @PostMapping("/approve")
+    public String approveBlog(@RequestParam Long id){
+        return blogService.approveBlog(id);
+    }
+
+    @PostMapping("/ban")
+    public String banBlog(@RequestParam Long id){
+        return blogService.banBlog(id);
+    }
+
+    @PostMapping("/unban")
+    public String unbanBlog(@RequestParam Long id){
+        return blogService.unbanBlog(id);
+    }
+
     @GetMapping("/get/{page}")
     public Page<Blog> getPets(@PathVariable int page) {
         return blogService.getBlogs(page);

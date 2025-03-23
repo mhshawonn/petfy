@@ -11,7 +11,18 @@ export const blogService = {
       console.log(response.data);
       return response.data;
     } catch (error) {
-      throw new Error("Failed to fetch blogs");
+      throw new Error("Failed to fetch blogs :" + error);
+    }
+  },
+
+  getBlogsNotApproved: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/get/NotApproved`);
+      console.log("fetched requested blogs");
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      throw new Error("Failed to fetch blogs :" + error);
     }
   },
 
@@ -24,7 +35,7 @@ export const blogService = {
       })
       return response.data
     } catch (error) {
-      throw new Error("Failed to fetch blog")
+      throw new Error("Failed to fetch blog :" + error)
     }
   },
 

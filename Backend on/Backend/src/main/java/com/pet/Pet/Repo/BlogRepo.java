@@ -8,7 +8,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import com.pet.Pet.Model.Blog;
 
+import java.util.List;
+
 @Repository
 public interface BlogRepo extends JpaRepository<Blog, Long> {
 
+    @Query("SELECT blog FROM Blog as blog WHERE blog.isApproved = false and blog.isBanned = false")
+    List<Blog> getBlogsNotApproved();
 }
